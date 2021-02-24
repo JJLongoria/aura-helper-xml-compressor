@@ -3,7 +3,7 @@ Libraries to compress any Salesforce Metadata XML Files to change the format. Th
 
 You can choose the sort order of the elements to reorganize the XML data as you like.
 
-**Support up to API 51.0**
+This library depends on [@ah/xml-definitions](https://github.com/JJLongoria/aura-helper-xml-definitions) and support the same versions. **Support up to API 51.0 (Spring ’21)**
 
 ## **Usage**
 
