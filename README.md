@@ -1,5 +1,5 @@
 # **Aura Helper XML Compressor Library**
-Libraries to compress any Salesforce Metadata XML Files to change the format. This library make easy the work with GIT and other Version Control Systems because grant always the same order of the elements, compress the file for ocuppy less storage and make GIT faster and, specially make merges conflict more easy to resolve because identy the changes better.
+Libraries to compress any Salesforce Metadata XML Files to change the format. This library make easy the work with GIT and other Version Control Systems because grant always the same order of the elements, compress the file for ocuppy less storage and make GIT faster and, specially make merges conflict more easy to resolve because identify the changes better.
 
 You can choose the sort order of the elements to reorganize the XML data as you like.
 
