@@ -1,5 +1,4 @@
 const Datatypes = require('./src/values/datatypes');
-const MetadataTypes = require('./src/values/metadataTypes');
 const XMLDefinitions = require('@ah/xml-definitions');
 const XMLParser = require('./src/utils/xmlParser');
 const Utils = require('./src/utils/utils');

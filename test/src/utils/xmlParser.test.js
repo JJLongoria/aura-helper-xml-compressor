@@ -1,5 +1,3 @@
-const XMLDefinitions = require('@ah/xml-definitions');
-const Utils = require('../../../src/utils/utils');
 const XMLParser = require('../../../src/utils/xmlParser');
 
 describe('Testing ./src/utils/xmlParser.js', () => {
