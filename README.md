@@ -50,7 +50,7 @@ Method to compress entire XML files from folder in Async mode and Complex elemen
 
 **Get the file compressed content Sync**
 
-Method to get the compressed content fron a file on Sync Mode
+Method to get the compressed content fron a file on Sync Mode. If yo choose a directory, the method thrown the error: Can't get compressed content from a directory. Select a single file
 
     const XMLCompressor = require('@ah/xml-compressor');
 
@@ -63,7 +63,7 @@ Method to get the compressed content fron a file on Sync Mode
 
 **Get the file compressed content Async**
 
-Method to get the compressed content fron a file on Sync Mode an Alphabed Desc as Sort Order.
+Method to get the compressed content fron a file on Async Mode an Alphabed Desc as Sort Order. If yo choose a directory, the method thrown the error: Can't get compressed content from a directory. Select a single file
 
     const XMLCompressor = require('@ah/xml-compressor');
 
