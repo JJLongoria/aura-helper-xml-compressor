@@ -1,7 +1,8 @@
-const Datatypes = require('./src/values/datatypes');
+
+const { DataTypes } = require('@ah/core').Values;
+const { XMLParser } = require('@ah/core').Languages;
+const { XMLUtils } = require('@ah/core').Utils;
 const XMLDefinitions = require('@ah/xml-definitions');
-const XMLParser = require('./src/utils/xmlParser');
-const Utils = require('./src/utils/utils');
 const fs = require('fs');
 const path = require('path');
 
@@ -25,7 +26,7 @@ function getCompressedContent(filePath, sortOrder) {
     return new Promise(function (resolve, reject) {
         try {
             if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory()) {
-                reject('Can\'t get compressed content from a directory. Select a single file');
+                reject(new Error('Can\'t get compressed content from a directory. Select a single file'));
             }
             resolve(compressXML(filePath, sortOrder));
         } catch (error) {
@@ -48,7 +49,7 @@ function compress(filePath, sortOrder, callback) {
         try {
             if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory()) {
                 getAllXMLFiles(filePath).then(function (files) {
-                    Utils.sort(files);
+                    XMLUtils.sort(files);
                     let filesToProcess = files.length;
                     for (let file of files) {
                         try {
@@ -96,10 +97,8 @@ function compressXML(filePath, sortOrder) {
 
 function processXMLData(type, xmlData, sortOrder) {
     let content = XMLParser.getXMLFirstLine() + NEWLINE;
-    let attributes = Utils.getAttributes(xmlData);
+    let attributes = XMLUtils.getAttributes(xmlData);
     let indent = 0;
-    if (!typeDefinition)
-        typeDefinition = XMLDefinitions.getRawDefinition(type);
     let objectKeys = getOrderedKeys(typeDefinition, sortOrder);
     content += XMLParser.getStartTag(type, attributes) + NEWLINE;
     for (let key of objectKeys) {
@@ -124,9 +123,9 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
             let objectKeys = getOrderedKeys(fieldDefinition, sortOrder);
             if (Array.isArray(fieldValue)) {
                 if (fieldDefinition.sortOrder !== undefined)
-                    Utils.sort(fieldValue, fieldDefinition.sortOrder);
+                    XMLUtils.sort(fieldValue, fieldDefinition.sortOrder);
                 for (let value of fieldValue) {
-                    content += Utils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, Utils.getAttributes(fieldValue));
+                    content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue));
                     if (objectKeys) {
                         for (let key of objectKeys) {
                             const subFieldValue = value[key];
@@ -138,16 +137,16 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
                                 let subFieldDefinition = fieldDefinition.fields[key];
                                 if (subFieldDefinition.definitionRef)
                                     subFieldDefinition = XMLDefinitions.resolveDefinitionReference(subFieldDefinition);
-                                content += XMLParser.getXMLElement(subFieldDefinition.key, Utils.getAttributes(subFieldValue), subFieldValue);
+                                content += XMLParser.getXMLElement(subFieldDefinition.key, XMLUtils.getAttributes(subFieldValue), subFieldValue);
                             }
                         }
                     } else {
                         content += value;
                     }
-                    content += XMLParser.getEndTag(fieldDefinition.key, Utils.getAttributes(fieldValue)) + NEWLINE;
+                    content += XMLParser.getEndTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + NEWLINE;
                 }
             } else {
-                content += Utils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, Utils.getAttributes(fieldValue));
+                content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue));
                 for (let key of objectKeys) {
                     const subFieldValue = fieldValue[key];
                     if (subFieldValue !== undefined && subFieldValue !== null) {
@@ -158,21 +157,21 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
                         let subFieldDefinition = fieldDefinition.fields[key];
                         if (subFieldDefinition.definitionRef)
                             subFieldDefinition = XMLDefinitions.resolveDefinitionReference(subFieldDefinition);
-                        content += XMLParser.getXMLElement(subFieldDefinition.key, Utils.getAttributes(subFieldValue), subFieldValue);
+                        content += XMLParser.getXMLElement(subFieldDefinition.key, XMLUtils.getAttributes(subFieldValue), subFieldValue);
                     }
                 }
-                content += XMLParser.getEndTag(fieldDefinition.key, Utils.getAttributes(fieldValue)) + NEWLINE;
+                content += XMLParser.getEndTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + NEWLINE;
             }
         } else {
-            content = Utils.getTabs(indent) + XMLParser.getXMLElement(fieldDefinition.key, Utils.getAttributes(fieldValue), fieldValue) + NEWLINE;
+            content = XMLUtils.getTabs(indent) + XMLParser.getXMLElement(fieldDefinition.key, XMLUtils.getAttributes(fieldValue), fieldValue) + NEWLINE;
         }
     } else {
         let objectKeys = getOrderedKeys(fieldDefinition, sortOrder);
         if (Array.isArray(fieldValue)) {
             if (fieldDefinition.sortOrder !== undefined)
-                Utils.sort(fieldValue, fieldDefinition.sortOrder);
+                XMLUtils.sort(fieldValue, fieldDefinition.sortOrder);
             for (let value of fieldValue) {
-                content += Utils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, Utils.getAttributes(fieldValue)) + NEWLINE;
+                content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + NEWLINE;
                 for (let key of objectKeys) {
                     const subFieldValue = value[key];
                     if (subFieldValue !== undefined && subFieldValue !== null) {
@@ -186,10 +185,10 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
                         content += processXMLField(subFieldDefinition, subFieldValue, sortOrder, indent + 1);
                     }
                 }
-                content += Utils.getTabs(indent) + XMLParser.getEndTag(fieldDefinition.key, Utils.getAttributes(fieldValue)) + NEWLINE;
+                content += XMLUtils.getTabs(indent) + XMLParser.getEndTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + NEWLINE;
             }
         } else {
-            content += Utils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, Utils.getAttributes(fieldValue)) + NEWLINE;
+            content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + NEWLINE;
             for (let key of objectKeys) {
                 const subFieldValue = fieldValue[key];
                 if (subFieldValue !== undefined && subFieldValue !== null) {
@@ -203,7 +202,7 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
                     content += processXMLField(subFieldDefinition, subFieldValue, sortOrder, indent + 1);
                 }
             }
-            content += Utils.getTabs(indent) + XMLParser.getEndTag(fieldDefinition.key, Utils.getAttributes(fieldValue)) + NEWLINE;
+            content += XMLUtils.getTabs(indent) + XMLParser.getEndTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + NEWLINE;
         }
     }
     return content;
@@ -269,7 +268,7 @@ function getOrderedKeys(xmlEntity, sortOrder) {
 }
 
 function isComplexField(xmlField) {
-    return xmlField.datatype === Datatypes.ARRAY || xmlField.datatype === Datatypes.OBJECT;
+    return xmlField.datatype === DataTypes.ARRAY || xmlField.datatype === DataTypes.OBJECT;
 }
 
 function createXMLFile(type, xmlData) {
@@ -278,10 +277,10 @@ function createXMLFile(type, xmlData) {
     if (typeDefinition) {
         result = {};
         if (xmlData) {
-            result = Utils.createXMLFile(typeDefinition);
-            result = Utils.prepareXML(xmlData, result);
+            result = XMLUtils.createXMLFile(typeDefinition);
+            result = XMLUtils.prepareXML(xmlData, result);
         } else {
-            result = Utils.createXMLFile(typeDefinition);
+            result = XMLUtils.createXMLFile(typeDefinition);
         }
     }
     return result;

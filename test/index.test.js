@@ -28,6 +28,13 @@ describe('Testing index.js', () => {
             expect(error.message).toContain('File not found.');
         }
     });
+    test('Testing Compress Folder Sync', () => {
+        try {
+            Index.compressSync('./test/assets/folderToCompress', Index.SORT_ORDER.SIMPLE_FIRST);
+        } catch (error) {
+            expect(error.message).toContain('Can\'t compress directory on sync mode. Execute compress() method to compress entire directory');
+        }
+    });
     test('Testing Compress File Async', async (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
@@ -85,6 +92,17 @@ describe('Testing index.js', () => {
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
         fs.unlinkSync('./test/assets/result.xml');
     });
+    test('Testing Get Compressed Content on Folder Sync', () => {
+        let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
+        fs.writeFileSync('./test/assets/result.xml', xmlContent);
+        try {
+            Index.getCompressedContentSync('./test/assets/folderToCompress', Index.SORT_ORDER.ALPHABET_DESC);
+        } catch(error){
+            expect(error.message).toMatch('Can\'t get compressed content from a directory. Select a single file');
+        }
+        fs.writeFileSync('./test/assets/result.xml', xmlContent);
+        fs.unlinkSync('./test/assets/result.xml');
+    });
     test('Testing Get Compressed Content Async', async (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
@@ -93,6 +111,17 @@ describe('Testing index.js', () => {
         fs.unlinkSync('./test/assets/result.xml');
         expect(exampleToCompare).toMatch(compressedContent);
         done();
+    });
+    test('Testing Get Compressed Content on Folder Async', () => {
+        let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
+        fs.writeFileSync('./test/assets/result.xml', xmlContent);
+        Index.getCompressedContent('./test/assets/folderToCompress', Index.SORT_ORDER.ALPHABET_DESC).then(() => {
+
+        }).catch((error) => {
+            expect(error.message).toMatch('Can\'t get compressed content from a directory. Select a single file');
+        });
+        fs.writeFileSync('./test/assets/result.xml', xmlContent);
+        fs.unlinkSync('./test/assets/result.xml');
     });
     test('Testing Get Compressed Content Async File Not Exists', async (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
