@@ -2,9 +2,8 @@
 const { DataTypes } = require('@ah/core').Values;
 const { XMLParser } = require('@ah/core').Languages;
 const { XMLUtils } = require('@ah/core').Utils;
+const { FileChecker, FileReader, FileWriter } = require('@ah/core').FileSystem;
 const XMLDefinitions = require('@ah/xml-definitions');
-const fs = require('fs');
-const path = require('path');
 
 const SORT_ORDER = {
     SIMPLE_FIRST: 'simpleFirst',
@@ -16,7 +15,7 @@ const SORT_ORDER = {
 const NEWLINE = '\r\n';
 let typeDefinition;
 function getCompressedContentSync(filePath, sortOrder) {
-    if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory()) {
+    if (FileChecker.isDirectory(filePath)) {
         throw new Error('Can\'t get compressed content from a directory. Select a single file');
     }
     return compressXML(filePath, sortOrder);
@@ -25,7 +24,7 @@ function getCompressedContentSync(filePath, sortOrder) {
 function getCompressedContent(filePath, sortOrder) {
     return new Promise(function (resolve, reject) {
         try {
-            if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory()) {
+            if (FileChecker.isDirectory(filePath)) {
                 reject(new Error('Can\'t get compressed content from a directory. Select a single file'));
             }
             resolve(compressXML(filePath, sortOrder));
@@ -36,25 +35,25 @@ function getCompressedContent(filePath, sortOrder) {
 }
 
 function compressSync(filePath, sortOrder) {
-    if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory()) {
+    if (FileChecker.isDirectory(filePath)) {
         throw new Error('Can\'t compress directory on sync mode. Execute compress() method to compress entire directory');
     } else {
         let xmlContent = compressXML(filePath, sortOrder);
-        fs.writeFileSync(filePath, xmlContent);
+        FileWriter.createFileSync(filePath, xmlContent);
     }
 }
 
 function compress(filePath, sortOrder, callback) {
     return new Promise(function (resolve, reject) {
         try {
-            if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory()) {
-                getAllXMLFiles(filePath).then(function (files) {
+            if (FileChecker.isDirectory(filePath)) {
+                FileReader.getAllFiles(filePath, ['.xml']).then(function (files) {
                     XMLUtils.sort(files);
                     let filesToProcess = files.length;
                     for (let file of files) {
                         try {
                             let xmlContent = compressXML(file, sortOrder);
-                            fs.writeFile(file, xmlContent, function () {
+                            FileWriter.createFile(file, xmlContent, function () {
                                 filesToProcess--;
                                 if (callback)
                                     callback.call(this, file, true);
@@ -72,7 +71,7 @@ function compress(filePath, sortOrder, callback) {
                 });
             } else {
                 let xmlContent = compressXML(filePath, sortOrder);
-                fs.writeFile(filePath, xmlContent, function () {
+                FileWriter.createFile(filePath, xmlContent, function () {
                     resolve();
                 });
             }
@@ -83,11 +82,11 @@ function compress(filePath, sortOrder, callback) {
 }
 
 function compressXML(filePath, sortOrder) {
-    if (!fs.existsSync(filePath))
+    if (!FileChecker.isExists(filePath))
         throw new Error('File not found. ' + filePath);
     if (!sortOrder)
         sortOrder = SORT_ORDER.ALPHABET_ASC;
-    let xmlRoot = XMLParser.parseXML(fs.readFileSync(filePath, 'utf8'), true);
+    let xmlRoot = XMLParser.parseXML(FileReader.readFileSync(filePath), true);
     let type = Object.keys(xmlRoot)[0];
     let xmlData = createXMLFile(type, xmlRoot[type]);
     if (xmlData === undefined)
@@ -284,35 +283,6 @@ function createXMLFile(type, xmlData) {
         }
     }
     return result;
-}
-
-function getAllXMLFiles(dir) {
-    return new Promise(function (resolve, rejected) {
-        let results = [];
-        fs.readdir(dir, function (err, list) {
-            if (err)
-                rejected(err);
-            var pending = list.length;
-            if (!pending)
-                resolve(results);
-            list.forEach(function (file) {
-                file = path.resolve(dir, file);
-                fs.stat(file, async function (err, stat) {
-                    if (stat && stat.isDirectory()) {
-                        let res = await getAllXMLFiles(file);
-                        results = results.concat(res);
-                        if (!--pending)
-                            resolve(results);
-                    } else {
-                        if (file.endsWith('.xml'))
-                            results.push(file);
-                        if (!--pending)
-                            resolve(results);
-                    }
-                });
-            });
-        });
-    });
 }
 
 module.exports = {
