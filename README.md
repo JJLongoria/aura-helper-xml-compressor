@@ -22,11 +22,30 @@ Method to compress a single file in Sync mode, if you chosse a directory, the me
 
 **Compress a single XML file Async and Sort Order**
 
-Method to compress a single file in aSync mode and Simple elements first as Sort order.
+Method to compress a single file in Async mode and Simple elements first as Sort order.
 
     const XMLCompressor = require('@ah/xml-compressor');
 
      XMLCompressor.compress('path/to/the/file', XMLCompressor.SORT_ORDER.SIMPLE_FIRST).then(function(){
+         // handle success
+    }).catch(function(){
+        // handler error
+    });
+
+**Compress a list of XML file Async and Sort Order**
+
+Method to compress a list of files in Async mode and Simple elements first as Sort order. You can't compress files and folders in the same list and can't add more than one folder to compress
+
+    const XMLCompressor = require('@ah/xml-compressor');
+    const files = [
+        'path/to/the/file1',
+        'path/to/the/file2',
+        'path/to/the/file3',
+        ...,
+        ...,
+        'path/to/the/fileN'
+    ];
+    XMLCompressor.compress(files, XMLCompressor.SORT_ORDER.SIMPLE_FIRST).then(function(){
          // handle success
     }).catch(function(){
         // handler error
