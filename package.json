@@ -5,31 +5,52 @@
     "description": "Libraries to compress any Salesforce Metadata XML Files to change the format. This library make easy the work with GIT and other Version Control Systems because grant always the same order of the elements, compress the file for ocuppy less storage and make GIT faster and, specially make merges conflict more easy to resolve because identify the changes better.",
     "main": "index.js",
     "scripts": {
-        "test": "jest --coverage"
+        "test": "jest --coverage --runInBand"
     },
     "keywords": [
+        "aura-helper-framework",
+        "aura helper framework",
+        "Aura Helper Framework",
+        "ah-framework",
+        "AH Framework",
+        "Aura Helper",
+        "aura-helper",
+        "AuraHelper Library",
+        "AuraHelper Libraries",
+        "AH",
+        "ah",
+        "Salesforce",
+        "Salesforce Metadata",
+        "Salesforce Apps",
+        "Salesforce XML",
+        "Salesforce Tools",
+        "Apex",
+        "force.com",
+        "DevOps",
+        "devops",
         "sf-xml-compressor",
         "SF XML Compressor",
         "SF XML",
         "xml-compressor",
-        "XML",
-        "XML Compressor",
-        "Salesforce XML",
-        "Salesforce",
-        "Metadata",
-        "Aura Helper",
-        "AuraHelper",
-        "AuraHelper Library",
-        "AuraHelper Libraries"
+        "XML Compressor"
     ],
     "author": "Juan José Longoria López (Kanko) <juanjoselongoria@gmail.com>",
-    "license": "MIT",
+    "license": "GPLv3",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/JJLongoria/aura-helper-xml-compressor"
+    },
+    "bugs": {
+		"url": "https://github.com/JJLongoria/aura-helper-xml-compressor/issues",
+		"email": "juanjoselongoria@gmail.com"
+	},
     "devDependencies": {
         "@types/jest": "^26.0.20",
         "jest": "^26.6.3"
     },
     "dependencies": {
         "@ah/core": "file:../ah-core",
+        "@ah/languages": "file:../ah-languages",
         "@ah/xml-definitions": "file:../ah-xml-definitions"
     }
 }
