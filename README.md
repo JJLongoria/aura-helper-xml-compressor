@@ -8,6 +8,8 @@ This library depends on [@ah/xml-definitions](https://github.com/JJLongoria/aura
 # [**Fields**](#xmldefinitions-fields)
 
 - [**SORT_ORDER**](#sort_order)
+
+    Object with the sort order values to sort the XML files
 ---
 
 ## [**SORT_ORDER**](#sort_order)
