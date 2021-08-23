@@ -95,6 +95,7 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
+---
 
 ## [**getCompressedContent(filePathOrXMLRoot, sortOrder)**](#getcompressedcontentfilepathorxmlroot-sortorder)
 Method to get the XML Content compressed and ordered in Async mode
@@ -149,6 +150,7 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
+---
 
 ## [**compressSync(filePath, sortOrder)**](#compresssyncfilepath-sortorder)
 Method to compress a single XML file in Sync mode
@@ -193,6 +195,7 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
+---
 
 ## [**compress(pathOrPaths, sortOrder, callback)**](#compresspathorpaths-sortorder-callback)
 Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode
