@@ -30,7 +30,7 @@ const SORT_ORDER = {
 /**
  * Method to get the compressed content fron a file on Sync Mode.
  * @param {String | Object} filePathOrXMLRoot File path to compress or Object with XML Data (XMLParser)
- * @param {String} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+ * @param {String?} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
  * 
  * @returns {String} Returns an String with the compressed content
  * 
@@ -52,7 +52,7 @@ function getCompressedContentSync(filePathOrXMLRoot, sortOrder) {
 /**
  * Method to get the XML Content compressed and ordered in Async mode
  * @param {String | Object} filePathOrXMLRoot File path to compress or Object with XML Data (XMLParser)
- * @param {String} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+ * @param {String?} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
  * @returns {Promise<String>} Returns a String Promise with the compressed content
  * 
  * @throws {OperationNotSupportedException} If the file does not support compression
@@ -79,7 +79,7 @@ function getCompressedContent(filePathOrXMLRoot, sortOrder) {
 /**
  * Method to compress a single XML file in Sync mode
  * @param {String} filePath XML File path to compress
- * @param {String} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+ * @param {String?} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
  * 
  * @throws {OperationNotSupportedException} If the file does not support compression
  * @throws {OperationNotAllowedException} If the file path is a folder path
@@ -100,8 +100,8 @@ function compressSync(filePath, sortOrder) {
 /**
  * Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode
  * @param {String | Array<String>} pathOrPaths File, list of files or folder paths to compress
- * @param {String} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
- * @param {Function} callback Callback function to handle compress progress
+ * @param {String?} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+ * @param {Function?} callback Callback function to handle compress progress
  * 
  * @returns {Promise<any>} Returns an empty Promise
  * 
