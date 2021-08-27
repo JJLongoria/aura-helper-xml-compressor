@@ -1,11 +1,13 @@
-const Index = require('../index');
+const XMLCompressor = require('../index');
 const fs = require('fs');
 
 describe('Testing index.js', () => {
     test('Testing Get Compressed Content Sync', () => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        xmlContent = Index.getCompressedContentSync('./test/assets/result.xml', Index.SORT_ORDER.ALPHABET_DESC);
+        const compressor = new XMLCompressor('./test/assets/result.xml');
+        compressor.sortAlphabetDesc();
+        xmlContent = compressor.getCompressedContentSync();
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
         fs.unlinkSync('./test/assets/result.xml');
     });
@@ -13,7 +15,9 @@ describe('Testing index.js', () => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
         try {
-            Index.getCompressedContentSync('./test/assets/folderToCompress', Index.SORT_ORDER.ALPHABET_DESC);
+            const compressor = new XMLCompressor('./test/assets/folderToCompress');
+            compressor.sortAlphabetDesc();
+            xmlContent = compressor.getCompressedContentSync();
         } catch (error) {
             expect(error.message).toMatch('Can\'t get compressed content from a directory. Select a single file');
         }
@@ -23,7 +27,9 @@ describe('Testing index.js', () => {
     test('Testing Get Compressed Content Async', async (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        let compressedContent = await Index.getCompressedContent('./test/assets/result.xml', Index.SORT_ORDER.SIMPLE_FIRST);
+        const compressor = new XMLCompressor('./test/assets/result.xml');
+        compressor.sortSimpleFirst();
+        let compressedContent = await compressor.getCompressedContent();
         let exampleToCompare = fs.readFileSync('./test/assets/fileCompressed.xml', 'utf8');
         fs.unlinkSync('./test/assets/result.xml');
         expect(exampleToCompare).toMatch(compressedContent);
@@ -32,7 +38,9 @@ describe('Testing index.js', () => {
     test('Testing Get Compressed Content on Folder Async', (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        Index.getCompressedContent('./test/assets/folderToCompress', Index.SORT_ORDER.ALPHABET_DESC).then(() => {
+        const compressor = new XMLCompressor('./test/assets/folderToCompress');
+        compressor.sortAlphabetAsc();
+        compressor.getCompressedContent().then(() => {
             done();
         }).catch((error) => {
             expect(error.message).toMatch('Can\'t get compressed content from a directory. Select a single file');
@@ -45,7 +53,9 @@ describe('Testing index.js', () => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
         try {
-            await Index.getCompressedContent('./test/assets/result1.xml', Index.SORT_ORDER.SIMPLE_FIRST);
+            const compressor = new XMLCompressor('./test/assets/result1.xml');
+            compressor.sortSimpleFirst();
+            await compressor.getCompressedContent();
         } catch (error) {
             expect(error.message).toContain('does not exists or not have access to it');
         }
@@ -54,10 +64,21 @@ describe('Testing index.js', () => {
     test('Testing Compress With file and folder', async (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        try{
-            await Index.compress(['./test/assets/folderNotCompatible', './test/assets/result.xml'], Index.SORT_ORDER.SIMPLE_FIRST, function (file, compressed) {});
-        } catch(error){
-            expect(error.message).toMatch('Can\'t compress files and folders at the same time. Please, add only folders or files to compress');
+        try {
+            const compressor = new XMLCompressor(['./test/assets/folderNotCompatible', './test/assets/result.xml']);
+            compressor.sortComplexFirst();
+            compressor.onCompressSuccess((status) => {
+                console.log('compressed');
+                console.log(status);
+            });
+            compressor.onCompressFailed((status) => {
+                console.log('not compressed');
+                console.log(status);
+            });
+            await compressor.getCompressedContent();
+            await compressor.compress();
+        } catch (error) {
+            expect(error.message).toMatch('Can\'t get compressed content from more than one file');
         }
         fs.unlinkSync('./test/assets/result.xml');
         done();
@@ -65,9 +86,19 @@ describe('Testing index.js', () => {
     test('Testing Compress With more than one folder', async (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        try{
-            await Index.compress(['./test/assets/folderNotCompatible', './test/assets/folderToCompress'], Index.SORT_ORDER.SIMPLE_FIRST, function (file, compressed) {});
-        } catch(error){
+        try {
+            const compressor = new XMLCompressor(['./test/assets/folderNotCompatible', './test/assets/folderToCompress']);
+            compressor.sortComplexFirst();
+            compressor.onCompressSuccess((status) => {
+                console.log('compressed');
+                console.log(status);
+            });
+            compressor.onCompressFailed((status) => {
+                console.log('not compressed');
+                console.log(status);
+            });
+            await compressor.compress();
+        } catch (error) {
             expect(error.message).toMatch('Can\'t compress more than one folder at the same time');
         }
         fs.unlinkSync('./test/assets/result.xml');
@@ -76,9 +107,11 @@ describe('Testing index.js', () => {
     test('Testing Compress With any file or folder', async (done) => {
         let nUncompressed = 0;
         let total = 0;
-        try{
-            await Index.compress([], Index.SORT_ORDER.SIMPLE_FIRST, function (file, compressed) {});
-        } catch(error){
+        try {
+            const compressor = new XMLCompressor();
+            compressor.sortComplexFirst();
+            await compressor.compress();
+        } catch (error) {
             expect(error.message).toMatch('Not files or folders selected to compress');
         }
         done();
@@ -86,7 +119,9 @@ describe('Testing index.js', () => {
     test('Testing Compress File Sync', () => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        Index.compressSync('./test/assets/result.xml', Index.SORT_ORDER.SIMPLE_FIRST);
+        const compressor = new XMLCompressor('./test/assets/result.xml');
+        compressor.sortSimpleFirst();
+        compressor.compressSync();
         let compressedContent = fs.readFileSync('./test/assets/result.xml', 'utf8');
         let exampleToCompare = fs.readFileSync('./test/assets/fileCompressed.xml', 'utf8');
         fs.unlinkSync('./test/assets/result.xml');
@@ -95,7 +130,9 @@ describe('Testing index.js', () => {
     test('Testing Compress File Sync Without Sort Order', () => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        Index.compressSync('./test/assets/result.xml');
+        const compressor = new XMLCompressor('./test/assets/result.xml');
+        compressor.sortSimpleFirst();
+        compressor.compressSync();
         let compressedContent = fs.readFileSync('./test/assets/result.xml', 'utf8');
         let exampleToCompare = fs.readFileSync('./test/assets/fileCompressed.xml', 'utf8');
         fs.unlinkSync('./test/assets/result.xml');
@@ -104,7 +141,9 @@ describe('Testing index.js', () => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
         try {
-            Index.compressSync('./test/assets/result1.xml', Index.SORT_ORDER.SIMPLE_FIRST);
+            const compressor = new XMLCompressor('./test/assets/result1.xml');
+            compressor.sortSimpleFirst();
+            compressor.compressSync();
         } catch (error) {
             expect(error.message).toContain('does not exists or not have access to it');
         }
@@ -112,7 +151,9 @@ describe('Testing index.js', () => {
     });
     test('Testing Compress Folder Sync', () => {
         try {
-            Index.compressSync('./test/assets/folderToCompress', Index.SORT_ORDER.SIMPLE_FIRST);
+            const compressor = new XMLCompressor('./test/assets/folderToCompress');
+            compressor.sortSimpleFirst();
+            compressor.compressSync();
         } catch (error) {
             expect(error.message).toContain('Can\'t compress directory on sync mode. Execute compress() method to compress entire directory');
         }
@@ -120,13 +161,17 @@ describe('Testing index.js', () => {
     test('Testing Compress File Async', async (done) => {
         let xmlContent = fs.readFileSync('./test/assets/fileUncompressed.xml', 'utf8');
         fs.writeFileSync('./test/assets/result.xml', xmlContent);
-        await Index.compress('./test/assets/result.xml', Index.SORT_ORDER.COMPLEX_FIRST);
+        const compressor = new XMLCompressor('./test/assets/result.xml');
+        compressor.sortComplexFirst();
+        await compressor.compress();
         fs.unlinkSync('./test/assets/result.xml');
         done();
     });
     test('Testing Compress File Async File Not Exists', async (done) => {
         try {
-            await Index.compress('./test/assets/result1.xml', Index.SORT_ORDER.SIMPLE_FIRST);
+            const compressor = new XMLCompressor('./test/assets/result1.xml');
+            compressor.sortSimpleFirst();
+            await compressor.compress();
         } catch (error) {
             expect(error.message).toContain('does not exists or not have access to it');
         }
@@ -134,37 +179,27 @@ describe('Testing index.js', () => {
     });
     test('Testing Compress Folder Sync', () => {
         try {
-            Index.compressSync('./test/assets/folderToCompress', Index.SORT_ORDER.SIMPLE_FIRST);
+            const compressor = new XMLCompressor('./test/assets/folderToCompress');
+            compressor.sortSimpleFirst();
+            compressor.compressSync();
         } catch (error) {
             expect(error.message).toMatch('Can\'t compress directory on sync mode. Execute compress() method to compress entire directory');
         }
     });
     test('Testing Compress Folder Async', async (done) => {
-        let nCompressed = 0;
         try {
-            await Index.compress('./test/assets/folderToCompress', Index.SORT_ORDER.SIMPLE_FIRST, function (file, compressed) {
-                nCompressed++;
-                if (nCompressed == 2) {
-                    expect(2).toEqual(nCompressed);
-                    done();
-                }
-            });
+            const compressor = new XMLCompressor('./test/assets/folderToCompress');
+            compressor.sortSimpleFirst();
+            await compressor.compress();
         } catch (error) {
             expect(error.message).toContain('File not found.');
         }
         done();
     });
     test('Testing Compress Folder Async With No Comprimible File', async (done) => {
-        let nUncompressed = 0;
-        let total = 0;
-        await Index.compress('./test/assets/folderNotCompatible', Index.SORT_ORDER.SIMPLE_FIRST, function (file, compressed) {
-            if (!compressed)
-                nUncompressed++;
-            total++;
-            if (total == 1) {
-                expect(1).toEqual(nUncompressed);
-            }
-        });
+        const compressor = new XMLCompressor('./test/assets/folderNotCompatible');
+        compressor.sortSimpleFirst();
+        await compressor.compress();
         done();
     });
 });

@@ -1,11 +1,5 @@
 
-/**
- * Module to compress any Salesforce Metadata XML Files to change the format. 
- * This module make easy the work with GIT and other Version Control Systems because grant always the same order of the elements, 
- * compress the file for ocuppy less storage and make GIT faster and, 
- * specially make merges conflict more easy to resolve because identify the changes better.
- */
-
+const EventEmitter = require('events').EventEmitter;
 const { DataTypes } = require('@ah/core').Values;
 const { XML } = require('@ah/languages');
 const { Validator, Utils } = require('@ah/core').CoreUtils;
@@ -15,11 +9,7 @@ const XMLDefinitions = require('@ah/xml-definitions');
 const XMLParser = XML.XMLParser;
 const XMLUtils = XML.XMLUtils;
 const NEWLINE = '\r\n';
-let typeDefinition;
 
-/**
- * Sort Order Values to Sort XML Elements on compress
- */
 const SORT_ORDER = {
     SIMPLE_FIRST: 'simpleFirst',
     COMPLEX_FIRST: 'complexFirst',
@@ -27,183 +17,365 @@ const SORT_ORDER = {
     ALPHABET_DESC: 'alphabetDesc'
 }
 
-/**
- * Method to get the compressed content fron a file on Sync Mode.
- * @param {String | Object} filePathOrXMLRoot File path to compress or Object with XML Data (XMLParser)
- * @param {String} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
- * 
- * @returns {String} Returns an String with the compressed content
- * 
- * @throws {OperationNotSupportedException} If the file does not support compression
- * @throws {OperationNotAllowedException} If the file path is a folder path
- * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
- * @throws {FileNotFoundException} If the file not exists or not have access to it
- * @throws {InvalidFilePathException} If the path is not a file
- */
-function getCompressedContentSync(filePathOrXMLRoot, sortOrder) {
-    if (Utils.isString(filePathOrXMLRoot)) {
-        if (FileChecker.isDirectory(filePathOrXMLRoot))
-            throw new OperationNotAllowedException('Can\'t get compressed content from a directory. Select a single file');
-        filePathOrXMLRoot = Validator.validateFilePath(filePathOrXMLRoot);
-    }
-    return compressXML(filePathOrXMLRoot, sortOrder);
-}
+const ON_COMPRESS_SUCCESS = 'compressSucess';
+const ON_COMPRESS_FAILED = 'compressFailed';
 
 /**
- * Method to get the XML Content compressed and ordered in Async mode
- * @param {String | Object} filePathOrXMLRoot File path to compress or Object with XML Data (XMLParser)
- * @param {String} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
- * @returns {Promise<String>} Returns a String Promise with the compressed content
+ * Class to compress any Salesforce Metadata XML Files to change the format
+ * to make easy the work with GIT or another Version Control Systems because grant always the same order of the elements,
+ * compress the file for ocuppy less storage and make GIT faster and, 
+ * specially make merges conflict more easy to resolve because identify the changes better.
  * 
- * @throws {OperationNotSupportedException} If the file does not support compression
- * @throws {OperationNotAllowedException} If the file path is a folder path
- * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
- * @throws {FileNotFoundException} If the file not exists or not have access to it
- * @throws {InvalidFilePathException} If the path is not a file
+ * You can choose the sort order of the elements to reorganize the XML data as you like.
+ * 
+ * The setters methods are defined like a builder pattern to make it more usefull
  */
-function getCompressedContent(filePathOrXMLRoot, sortOrder) {
-    return new Promise(function (resolve, reject) {
-        try {
-            if (Utils.isString(filePathOrXMLRoot)) {
-                if (FileChecker.isDirectory(filePathOrXMLRoot))
-                    throw new OperationNotAllowedException('Can\'t get compressed content from a directory. Select a single file');
-                filePathOrXMLRoot = Validator.validateFilePath(filePathOrXMLRoot);
-            }
-            resolve(compressXML(filePathOrXMLRoot, sortOrder));
-        } catch (error) {
-            reject(error);
+class XMLCompressor {
+
+    /**
+     * Constructor to create a new XML Compressor object
+     * @param {String | Array<String>} [pathOrPaths] Path or paths to files or folder to compress 
+     * @param {String} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+     */
+    constructor(pathOrPaths, sortOrder) {
+        this.paths = pathOrPaths ? XMLUtils.forceArray(pathOrPaths) : [];
+        this.sortOrder = (sortOrder && SORT_ORDER[sortOrder]) ? sortOrder : SORT_ORDER.ALPHABET_ASC;
+        this.content = undefined;
+        this.xmlRoot = undefined;
+
+        this._xmlDefinition = undefined;
+        this._compressedContent = undefined;
+        this._event = new EventEmitter();
+    }
+
+    /**
+     * Method to handle when a file compression failed. The callback method will be execute with any file compression error when execute compress() method.
+     * @param {Function} onFailedCallback Callback function to handle the event
+     * 
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    onCompressFailed(onFailedCallback) {
+        this._event.on(ON_COMPRESS_FAILED, onFailedCallback);
+        return this;
+    }
+
+    /**
+     * Method to handle when a file compressed succesfully. The callback method will be execute with any compressed file when execute compress() method.
+     * @param {Function} onSuccessCallback Callback function to handle the event
+     * 
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    onCompressSuccess(onSuccessCallback) {
+        this._event.on(ON_COMPRESS_SUCCESS, onSuccessCallback);
+        return this;
+    }
+
+    /**
+     * Method to set the file or folder path or paths to execute compressor operations
+     * @param {String | Array<String>} pathOrPaths Path or paths to files or folder to compress 
+     * 
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    setPaths(pathOrPaths) {
+        if (!this.paths)
+            this.paths = [];
+        this.paths = XMLUtils.forceArray(pathOrPaths);
+        return this;
+    }
+
+    /**
+     * Method to add a file or folder path or paths to execute compressor operations
+     * @param {String | Array<String>} pathOrPaths Path or paths to files or folder to compress 
+     * 
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    addPaths(pathOrPaths) {
+        if (!this.paths)
+            this.paths = [];
+        if (pathOrPaths) {
+            pathOrPaths = XMLUtils.forceArray(pathOrPaths);
+            this.paths = this.paths.concat(pathOrPaths);
         }
-    });
-}
-
-/**
- * Method to compress a single XML file in Sync mode
- * @param {String} filePath XML File path to compress
- * @param {String} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
- * 
- * @throws {OperationNotSupportedException} If the file does not support compression
- * @throws {OperationNotAllowedException} If the file path is a folder path
- * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
- * @throws {FileNotFoundException} If the file not exists or not have access to it
- * @throws {InvalidFilePathException} If the path is not a file
- */
-function compressSync(filePath, sortOrder) {
-    if (FileChecker.isDirectory(filePath)) {
-        throw new OperationNotAllowedException('Can\'t compress directory on sync mode. Execute compress() method to compress entire directory');
-    } else {
-        filePath = Validator.validateFilePath(filePath);
-        let xmlContent = compressXML(filePath, sortOrder);
-        FileWriter.createFileSync(filePath, xmlContent);
+        return this;
     }
-}
 
-/**
- * Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode
- * @param {String | Array<String>} pathOrPaths File, list of files or folder paths to compress
- * @param {String} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
- * @param {Function} [callback] Callback function to handle compress progress
- * 
- * @returns {Promise<any>} Returns an empty Promise
- * 
- * @throws {OperationNotSupportedException} If try to compress more than one folder, or file and folders at the same time
- * @throws {DataNotFoundException} If not found file or folder paths 
- * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
- * @throws {FileNotFoundException} If the file not exists or not have access to it
- * @throws {InvalidFilePathException} If the path is not a file
- * @throws {WrongDirectoryPathException} If the folder Path is not a String or cant convert to absolute path
- * @throws {DirectoryNotFoundException} If the directory not exists or not have access to it
- * @throws {InvalidDirectoryPathException} If the path is not a directory
- */
-function compress(pathOrPaths, sortOrder, callback) {
-    return new Promise(async function (resolve, reject) {
-        try {
-            const paths = Utils.forceArray(pathOrPaths);
-            const pathsToCompress = [];
-            let nFiles = 0;
-            let nFolders = 0;
-            for (let path of paths) {
-                if (FileChecker.isFile(path)) {
-                    nFiles++;
-                    pathsToCompress.push(Validator.validateFilePath(path));
-                } else {
-                    nFolders++;
-                    pathsToCompress.push(Validator.validateFolderPath(path));
+    /**
+     * Method to set a XML String content to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths)
+     * @param {String} content String XML content to compress. 
+     * 
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    setContent(content) {
+        this.content = content;
+        return this;
+    }
+
+    /**
+     * Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @ah/languages module)
+     * @param {Object} xmlRoot XML Parsed object with XMLParser from languages module
+     * 
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    setXMLRoot(xmlRoot) {
+        this.xmlRoot = xmlRoot;
+        return this;
+    }
+
+    /**
+     * Method to set the sort order value to sort the XML Elements when compress
+     * @param {String} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default).
+     * 
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    setSortOrder(sortOrder) {
+        this.sortOrder = (sortOrder && SORT_ORDER[sortOrder]) ? sortOrder : SORT_ORDER.ALPHABET_ASC;
+        return this;
+    }
+
+    /**
+     * Method to set Simple XML Elements first as sort order (simpleFirst)
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    sortSimpleFirst() {
+        this.sortOrder = SORT_ORDER.SIMPLE_FIRST;
+        return this;
+    }
+
+    /**
+     * Method to set Complex XML Elements first as sort order (complexFirst)
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    sortComplexFirst() {
+        this.sortOrder = SORT_ORDER.COMPLEX_FIRST;
+        return this;
+    }
+
+    /**
+     * Method to set Alphabet Asc as sort order (alphabetAsc)
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    sortAlphabetAsc() {
+        this.sortOrder = SORT_ORDER.ALPHABET_ASC;
+        return this;
+    }
+
+    /**
+     * Method to set Alphabet Desc as sort order (alphabetDesc)
+     * @returns {XMLCompressor} Return the XMLCompressor instance
+     */
+    sortAlphabetDesc() {
+        this.sortOrder = SORT_ORDER.ALPHABET_DESC;
+        return this;
+    }
+
+    /**
+     * Method to get the XML compressed content from a file path, String content or XMLRoot object on sync mode.
+     * XMLRoot object has priority over String content to be processed, and String content priority over path. For example, if you pass content and XMLRoot object to compressor, this method will be run with the XMLRoot data.
+     * @returns {String} Returns a String with the compressed content
+     * 
+     * @throws {OperationNotSupportedException} If the file does not support compression
+     * @throws {OperationNotAllowedException} If the file path is a folder path
+     * @throws {DataNotFoundException} If has no paths, content or XML Root to process
+     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {FileNotFoundException} If the file not exists or not have access to it
+     * @throws {InvalidFilePathException} If the path is not a file
+     */
+    getCompressedContentSync() {
+        if (this._compressedContent) {
+            return this._compressedContent;
+        }
+        if (!this.content && !this.xmlRoot) {
+            if (this.paths.length > 1)
+                throw new OperationNotAllowedException('Can\'t get compressed content from more than one file');
+            else if (!this.paths || this.paths.length === 0)
+                throw new DataNotFoundException('Not path, content or XML Root to get the compressed XML content');
+            else if (FileChecker.isDirectory(this.paths[0]))
+                throw new OperationNotAllowedException('Can\'t get compressed content from a directory. Select a single file');
+            this.paths[0] = Validator.validateFilePath(this.paths[0]);
+            this.content = FileReader.readFileSync(this.paths[0]);
+        }
+        if (!this.xmlRoot)
+            this.xmlRoot = XMLParser.parseXML(this.content, true);
+        const type = Object.keys(this.xmlRoot)[0];
+        if (!this._xmlDefinition)
+            this._xmlDefinition = XMLDefinitions.getRawDefinition(type);
+        const xmlData = XMLUtils.cleanXMLFile(this._xmlDefinition, this.xmlRoot[type]);
+        if (xmlData === undefined)
+            throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+        this._compressedContent = processXMLData(type, xmlData, this._xmlDefinition, this.sortOrder);
+        return this._compressedContent;
+    }
+
+    /**
+     * Method to get the XML compressed content from a file path, String content or XMLRoot object on async mode.
+     * XMLRoot object has priority over String content to be processed, and String content priority over path. For example, if you pass content and XMLRoot object to compressor, this method will be run with the XMLRoot data.
+     * @returns {Promise<String>} Returns a String Promise with the compressed content
+     * 
+     * @throws {OperationNotSupportedException} If the file does not support compression
+     * @throws {OperationNotAllowedException} If the file path is a folder path
+     * @throws {DataNotFoundException} If has no paths, content or XML Root to process
+     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {FileNotFoundException} If the file not exists or not have access to it
+     * @throws {InvalidFilePathException} If the path is not a file
+     */
+    getCompressedContent() {
+        return new Promise((resolve, reject) => {
+            try {
+                if (this._compressedContent) {
+                    resolve(this._compressedContent);
+                    return;
                 }
+                if (!this.content && !this.xmlRoot) {
+                    if (this.paths.length > 1)
+                        throw new OperationNotAllowedException('Can\'t get compressed content from more than one file');
+                    else if (!this.paths || this.paths.length === 0)
+                        throw new DataNotFoundException('Not path, content or XML Root to get the compressed XML content');
+                    else if (FileChecker.isDirectory(this.paths[0]))
+                        throw new OperationNotAllowedException('Can\'t get compressed content from a directory. Select a single file');
+                    this.paths[0] = Validator.validateFilePath(this.paths[0]);
+                    this.content = FileReader.readFileSync(this.paths[0]);
+                }
+                if (!this.xmlRoot)
+                    this.xmlRoot = XMLParser.parseXML(this.content, true);
+                const type = Object.keys(this.xmlRoot)[0];
+                if (!this._xmlDefinition)
+                    this._xmlDefinition = XMLDefinitions.getRawDefinition(type);
+                const xmlData = XMLUtils.cleanXMLFile(this._xmlDefinition, this.xmlRoot[type]);
+                if (xmlData === undefined)
+                    throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+                this._compressedContent = processXMLData(type, xmlData, this._xmlDefinition, this.sortOrder);
+                resolve(this._compressedContent);
+            } catch (error) {
+                reject(error);
             }
-            if (nFiles == 0 && nFolders == 0)
-                throw new DataNotFoundException('Not files or folders selected to compress');
-            else if (nFiles > 0 && nFolders > 0)
-                throw new OperationNotSupportedException('Can\'t compress files and folders at the same time. Please, add only folders or files to compress');
-            else if (nFolders > 1)
-                throw new OperationNotSupportedException('Can\'t compress more than one folder at the same time.');
-            if (nFolders == 1) {
-                const files = await FileReader.getAllFiles(pathsToCompress[0], ['.xml']);
+        });
+    }
+
+    /**
+     * Method to get the XML compressed content from a file path on sync mode.
+     * 
+     * @throws {OperationNotSupportedException} If the file does not support compression
+     * @throws {OperationNotAllowedException} If the file path is a folder path
+     * @throws {DataNotFoundException} If has no paths to process
+     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {FileNotFoundException} If the file not exists or not have access to it
+     * @throws {InvalidFilePathException} If the path is not a file
+     */
+    compressSync() {
+        if (this.paths.length > 1)
+            throw new OperationNotAllowedException('Can\'t compress more than one file on sync mode. Execute compress() method compress several files');
+        else if (!this.paths || this.paths.length === 0)
+            throw new DataNotFoundException('Has no paths to get the compressed XML content');
+        else if (FileChecker.isDirectory(this.paths[0]))
+            throw new OperationNotAllowedException('Can\'t compress directory on sync mode. Execute compress() method to compress entire directory');
+        this.paths[0] = Validator.validateFilePath(this.paths[0]);
+        this.content = FileReader.readFileSync(this.paths[0]);
+        this.xmlRoot = XMLParser.parseXML(this.content, true);
+        const type = Object.keys(this.xmlRoot)[0];
+        this._xmlDefinition = XMLDefinitions.getRawDefinition(type);
+        const xmlData = XMLUtils.cleanXMLFile(this._xmlDefinition, this.xmlRoot[type]);
+        if (xmlData === undefined)
+            throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+        this._compressedContent = processXMLData(type, xmlData, this._xmlDefinition, this.sortOrder);
+        FileWriter.createFileSync(this.paths[0], this._compressedContent);
+    }
+
+    /**
+     * Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode. This methods fire some events to handle compress progress.
+     * Use onCompressFailed() and onCompressSuccess() methods to handling progress.
+     * 
+     * @returns {Promise<any>} Returns an empty Promise
+     * 
+     * @throws {OperationNotSupportedException} If try to compress more than one folder, or file and folders at the same time
+     * @throws {DataNotFoundException} If has no paths to process
+     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {FileNotFoundException} If the file not exists or not have access to it
+     * @throws {InvalidFilePathException} If the path is not a file
+     * @throws {WrongDirectoryPathException} If the folder Path is not a String or cant convert to absolute path
+     * @throws {DirectoryNotFoundException} If the directory not exists or not have access to it
+     * @throws {InvalidDirectoryPathException} If the path is not a directory
+     */
+    compress() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const pathsToCompress = [];
+                let nFiles = 0;
+                let nFolders = 0;
+                for (const path of this.paths) {
+                    if (FileChecker.isFile(path)) {
+                        nFiles++;
+                        pathsToCompress.push(Validator.validateFilePath(path));
+                    } else {
+                        nFolders++;
+                        pathsToCompress.push(Validator.validateFolderPath(path));
+                    }
+                }
+                if (nFiles == 0 && nFolders == 0)
+                    throw new DataNotFoundException('Not files or folders selected to compress');
+                else if (nFiles > 0 && nFolders > 0)
+                    throw new OperationNotSupportedException('Can\'t compress files and folders at the same time. Please, add only folders or files to compress');
+                else if (nFolders > 1)
+                    throw new OperationNotSupportedException('Can\'t compress more than one folder at the same time.');
+                let files;
+                if (nFolders == 1)
+                    files = await FileReader.getAllFiles(pathsToCompress[0], ['.xml']);
+                else
+                    files = pathsToCompress;
                 Utils.sort(files);
                 const totalFiles = files.length;
                 let filesProcessed = 0;
+                let oldType;
+                let xmlDefinition;
                 for (const file of files) {
                     try {
-                        const xmlContent = compressXML(file, sortOrder);
-                        FileWriter.createFile(file, xmlContent, function () {
+                        const xmlRoot = XMLParser.parseXML(FileReader.readDirSync(file), true);
+                        const type = Object.keys(xmlRoot)[0];
+                        if (!xmlDefinition || type !== oldType)
+                            xmlDefinition = XMLDefinitions.getRawDefinition(type);
+                        oldType = type;
+                        const xmlData = XMLUtils.cleanXMLFile(xmlDefinition, xmlRoot[type]);
+                        if (xmlData === undefined)
+                            throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+                        const xmlContent = processXMLData(type, xmlData, xmlDefinition, this.sortOrder);
+                        FileWriter.createFile(file, xmlContent, () => {
                             filesProcessed++;
-                            if (callback)
-                                callback.call(this, file, true, filesProcessed, totalFiles);
+                            this._event.emit(ON_COMPRESS_SUCCESS, {
+                                file: file,
+                                filesProcessed: filesProcessed,
+                                totalFiles: totalFiles
+                            });
                         });
                     } catch (error) {
                         filesProcessed++;
-                        if (callback)
-                            callback.call(this, file, false, filesProcessed, totalFiles);
-                    }
-                }
-                resolve();
-            } else {
-                const totalFiles = pathsToCompress.length;
-                let filesProcessed = 0;
-                for (const pathToCompress of pathsToCompress) {
-                    try {
-                        let xmlContent = compressXML(pathToCompress, sortOrder);
-                        FileWriter.createFile(pathToCompress, xmlContent, function () {
-                            filesProcessed++;
-                            if (callback)
-                                callback.call(this, pathToCompress, false, filesProcessed, totalFiles);
+                        this._event.emit(ON_COMPRESS_FAILED, {
+                            file: file,
+                            filesProcessed: filesProcessed,
+                            totalFiles: totalFiles
                         });
-                    } catch (error) {
-                        filesProcessed++;
-                        if (callback)
-                            callback.call(this, pathToCompress, false, filesProcessed, totalFiles);
                     }
                 }
                 resolve();
+            } catch (error) {
+                reject(error)
             }
-        } catch (error) {
-            reject(error)
-        }
-    });
-}
+        });
+    }
 
-function compressXML(filePathOrXMLRoot, sortOrder) {
-    if (!sortOrder)
-        sortOrder = SORT_ORDER.ALPHABET_ASC;
-    let xmlRoot;
-    if (Utils.isString(filePathOrXMLRoot))
-        xmlRoot = XMLParser.parseXML(FileReader.readFileSync(filePathOrXMLRoot), true);
-    else
-        xmlRoot = filePathOrXMLRoot;
-    let type = Object.keys(xmlRoot)[0];
-    typeDefinition = XMLDefinitions.getRawDefinition(type);
-    let xmlData = XMLUtils.cleanXMLFile(typeDefinition, xmlRoot[type]);
-    if (xmlData === undefined && filePathOrXMLRoot === 'string')
-        throw new OperationNotSupportedException('The file ' + filePathOrXMLRoot + ' of MetadataType ' + type + ' does not support compression');
-    else if (xmlData === undefined)
-        throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
-    return processXMLData(type, xmlData, sortOrder);
+    /**
+     * Method to get the Sort Order values object
+     * @returns {Object} Return and object with the available sort order values
+     */
+    static getSortOrderValues() {
+        return SORT_ORDER;
+    }
 }
+module.exports = XMLCompressor;
 
-function processXMLData(type, xmlData, sortOrder) {
+function processXMLData(type, xmlData, xmlDefinition, sortOrder) {
     let content = XMLParser.getXMLFirstLine() + NEWLINE;
     let attributes = XMLUtils.getAttributes(xmlData);
     let indent = 0;
-    let objectKeys = getOrderedKeys(typeDefinition, sortOrder);
+    let objectKeys = getOrderedKeys(xmlDefinition, sortOrder);
     content += XMLParser.getStartTag(type, attributes) + NEWLINE;
     try {
         for (let key of objectKeys) {
@@ -213,7 +385,7 @@ function processXMLData(type, xmlData, sortOrder) {
                     continue;
                 if (Array.isArray(fieldValue) && fieldValue.length === 0)
                     continue;
-                const fieldDefinition = typeDefinition[key];
+                const fieldDefinition = xmlDefinition[key];
                 content += processXMLField(fieldDefinition, fieldValue, sortOrder, indent + 1);
             }
         }
@@ -407,12 +579,4 @@ function getOrderedKeys(xmlEntity, sortOrder) {
 
 function isComplexField(xmlField) {
     return xmlField.datatype === DataTypes.ARRAY || xmlField.datatype === DataTypes.OBJECT;
-}
-
-module.exports = {
-    compressSync: compressSync,
-    compress: compress,
-    getCompressedContent: getCompressedContent,
-    getCompressedContentSync: getCompressedContentSync,
-    SORT_ORDER: SORT_ORDER
 }
