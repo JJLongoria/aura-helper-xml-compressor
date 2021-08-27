@@ -6,7 +6,7 @@ You can choose the sort order of the elements to reorganize the XML data as you 
 This library depends on [@ah/xml-definitions](https://github.com/JJLongoria/aura-helper-xml-definitions) and support the same versions.
 
 
-# [**XMLcompressor Class**](#xmlcompressor-class)
+# [**XMLCompressor Class**](#xmlcompressor-class)
 Class to compress any Salesforce Metadata XML Files to change the format to make easy the work with GIT or another Version Control Systems because grant always the same order of the elements, compress the file for ocuppy less storage and make GIT faster and, specially make merges conflict more easy to resolve because identify the changes better. 
 
 You can choose the sort order of the elements to reorganize the XML data as you like. 
