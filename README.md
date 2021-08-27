@@ -5,30 +5,59 @@ You can choose the sort order of the elements to reorganize the XML data as you 
 
 This library depends on [@ah/xml-definitions](https://github.com/JJLongoria/aura-helper-xml-definitions) and support the same versions.
 
-# [**Fields**](#xmldefinitions-fields)
 
-- [**SORT_ORDER**](#sort_order)
+# [**XMLcompressor Class**](#xmlcompressor-class)
+Class to compress any Salesforce Metadata XML Files to change the format to make easy the work with GIT or another Version Control Systems because grant always the same order of the elements, compress the file for ocuppy less storage and make GIT faster and, specially make merges conflict more easy to resolve because identify the changes better. 
 
-    Object with the sort order values to sort the XML files
----
+You can choose the sort order of the elements to reorganize the XML data as you like. 
 
-## [**SORT_ORDER**](#sort_order)
-Object with the sort order values to sort the XML files
+The setters methods are defined like a builder pattern to make it more usefull
 
-    const SORT_ORDER = {
-        SIMPLE_FIRST: 'simpleFirst',
-        COMPLEX_FIRST: 'complexFirst',
-        ALPHABET_ASC: 'alphabetAsc',
-        ALPHABET_DESC: 'alphabetDesc'
-    }
+### *Class Members*
+- [**Fields**](#fields)
 
-- **ALPHABET_ASC**: Reorder the XML elements on alphabetical ascending order (a, b, c...). String value: 'alphabetAsc'
-- **ALPHABET_DESC**: Reorder the XML elements on alphabetical descending order (z, y, x...). String value: 'alphabetDesc'
-- **SIMPLE_FIRST**: Reorder the XML elements when simple elements (Strings, Booleans, Dates, Enums... without nested elements) as first elements (also use alphabetical asc order to order the simple and complex types). String value: 'simpleFirst'
-- **COMPLEX_FIRST**: Reorder the XML elements when complex elements (Arrays and Objects with nested elements) as first elements (also use alphabetical asc order to order the simple and complex types). String value: 'complexFirst'
+- [**Constructors**](#constructors)
+
+- [**Methods**](#methods)
+
+</br>
+
+# [**Fields**](#fields)
+The fields that start with _ are for internal use only (Does not modify this fields to a correct CLI Manager work). To the rest of fields, setter methods are recommended instead modify fields.
+
+### [**paths**](#xmlcompressor-fields-paths)
+File or folder path or paths to execute compress operations
+- Array\<String\>
+
+### [**sortOrder**](#xmlcompressor-fields-sortorder)
+Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+- String
+
+### [**content**](#xmlcompressor-fields-content)
+String XML content to compress
+- String
+
+### [**xmlRoot**](#xmlcompressor-fields-xmlroot)
+XML Parsed object with XMLParser from languages module
+- Object
 
 
-# [**Methods**](#xmldefinitions-methods)
+</br>
+
+# [**Constructors**](#constructors)
+
+## [**constructor(projectFolder, apiVersion, namespacePrefix)**](#xmlcompressor-class-constructors-construct)
+Constructor to create a new XML Compressor object. All parameters are optional and you can use the setters methods to set the values when you want.
+
+### **Parameters:**
+  - **pathOrPaths**: Path or paths to files or folder to compress
+    - String | Array\<String\>
+  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+    - String
+
+</br>
+
+# [**Methods**](#methods)
 
   - [**getCompressedContentSync(filePathOrXMLRoot, sortOrder)**](#getcompressedcontentsyncfilepathorxmlroot-sortorder)
   
@@ -47,15 +76,263 @@ Object with the sort order values to sort the XML files
     Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode
 
 ---
-
-## [**getCompressedContentSync(filePathOrXMLRoot, sortOrder)**](#getcompressedcontentsyncfilepathorxmlroot-sortorder)
-Method to get the compressed content fron a file on Sync Mode.
+## [**onCompressFailed(onFailedCallback)**]
+Method to handle when a file compression failed. The callback method will be execute with any file compression error when execute compress() method.
 
 ### **Parameters:**
-  - **filePathOrXMLRoot**: File path to compress or Object with XML Data (XMLParser)
-    - String | Object 
-  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+  - **onFailedCallback**: Callback function to handle the event
+    - Function 
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+### **Examples:**
+**Handle failed XML compression**
+    const XMLCompressor = require('@ah/xml-compressor');
+
+    const compressor = new XMLCompressor('path/to/the/folder');
+
+    compressor.onCompressFailed((data) => {
+        console.log(data.file);
+        console.log(data.processedFiles);
+        console.log(data.totalFiles);
+    });
+
+    XMLCompressor.compress().then(function(){
+         // handle success
+    }).catch(function(){
+        // handler error
+    });
+---
+
+## [**onCompressSuccess(onSuccessCallback)**]
+Method to handle when a file compressed succesfully. The callback method will be execute with any compressed file when execute compress() method.
+
+### **Parameters:**
+  - **onSuccessCallback**: Callback function to handle the event
+    - Function 
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+### **Examples:**
+**Handle success XML compression**
+    const XMLCompressor = require('@ah/xml-compressor');
+
+    const compressor = new XMLCompressor('path/to/the/folder');
+
+    compressor.onCompressSuccess((data) => {
+        console.log(data.file);
+        console.log(data.processedFiles);
+        console.log(data.totalFiles);
+    });
+
+    XMLCompressor.compress().then(function(){
+         // handle success
+    }).catch(function(){
+        // handler error
+    });
+---
+## [**setPaths(pathOrPaths)**]
+Method to set the file or folder path or paths to execute compressor operations
+### **Parameters:**
+  - **pathOrPaths**: Path or paths to files or folder to compress 
+    - String | Array\<String\> 
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+### **Examples:**
+**Set one path to compress**
+    const XMLCompressor = require('@ah/xml-compressor');
+
+    const compressor = new XMLCompressor();
+    compressor.setPaths('set/only/one/path');
+
+**Set several paths to compress**
+    const XMLCompressor = require('@ah/xml-compressor');
+
+    const paths = [
+        'path/to/compress/file1.xml',
+        'path/to/compress/file2.xml',
+        'path/to/compress/file3.xml',
+        'path/to/compress/file4.xml',
+        'path/to/compress/file5.xml'
+    ];
+
+    const compressor = new XMLCompressor();
+    compressor.setPaths(paths);
+---
+
+## [**addPaths(pathOrPaths)**]
+Method to add a file or folder path or paths to execute compressor operations
+
+### **Parameters:**
+  - **pathOrPaths**: Path or paths to files or folder to compress 
+    - String | Array\<String\> 
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+### **Examples:**
+**Add one path to compress**
+    const XMLCompressor = require('@ah/xml-compressor');
+
+    const compressor = new XMLCompressor();
+    compressor.addPaths('set/only/one/path');
+
+**Add several paths to compress**
+    const XMLCompressor = require('@ah/xml-compressor');
+
+    const paths = [
+        'path/to/compress/file1.xml',
+        'path/to/compress/file2.xml',
+        'path/to/compress/file3.xml',
+        'path/to/compress/file4.xml',
+        'path/to/compress/file5.xml'
+    ];
+
+    const compressor = new XMLCompressor();
+    compressor.addPaths(paths).addPaths('add/another/path/or/paths');
+---
+## [**setContent(content)**]
+Method to set a XML String content to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths)
+
+### **Parameters:**
+  - **content**: String XML content to compress 
     - String
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+### **Examples:**
+**Set XML Content to process**
+    const XMLCompressor = require('@ah/xml-compressor');
+    
+    const xmlContent = '<?xml version...';
+
+    const compressor = new XMLCompressor();
+    compressor.setContent(xmlContent);
+---
+
+## [**setXMLRoot(xmlRoot)**]
+Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @ah/languages module)
+
+### **Parameters:**
+  - **xmlRoot**: XML Parsed object with XMLParser from languages module
+    - Object
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+### **Examples:**
+**Set XML Root Object to process**
+    const { XMLParser } = require('@ah/languages').XML;
+    const XMLCompressor = require('@ah/xml-compressor');
+    
+    const xmlContent = '<?xml version...';
+    const xmlRoot = XMLParser.parse(xmlContent);
+
+    const compressor = new XMLCompressor();
+    compressor.setXMLRoot(xmlRoot);
+---
+
+## [**setSortOrder(sortOrder)**]
+Method to set the sort order value to sort the XML Elements when compress
+
+### **Parameters:**
+  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default).
+    - String
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+### **Examples:**
+**Set Sort order to order XML Elements**
+    const XMLCompressor = require('@ah/xml-compressor');
+    
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor();
+    compressor.setSortOrder(sortOrder.SIMPLE_FIRST);
+---
+
+## [**sortSimpleFirst()**]
+Method to set Simple XML Elements first as sort order (simpleFirst)
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+
+### **Examples:**
+**Set Simple first sort order to order XML Elements**
+    const XMLCompressor = require('@ah/xml-compressor');
+    
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor();
+    compressor.addPaths('file/to/compress.xml').sortSimpleFirst();
+---
+
+## [**sortComplexFirst()**]
+Method to set Complex XML Elements first as sort order (complexFirst)
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+
+### **Examples:**
+**Set Complex first sort order to order XML Elements**
+    const XMLCompressor = require('@ah/xml-compressor');
+    
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor();
+    compressor.addPaths('file/to/compress.xml').sortComplexFirst();
+---
+
+## [**sortAlphabetAsc()**]
+Method to set Alphabet Asc as sort order (alphabetAsc)
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+
+### **Examples:**
+**Set Alphabet asc sort order to order XML Elements**
+    const XMLCompressor = require('@ah/xml-compressor');
+    
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor();
+    compressor.addPaths('file/to/compress.xml').sortAlphabetAsc();
+---
+
+## [**sortAlphabetDesc()**]
+Method to set Alphabet Desc as sort order (alphabetDesc)
+
+### **Return:**
+Return the XMLCompressor instance
+- XMLCompressor
+
+
+### **Examples:**
+**Set Alphabet desc sort order to order XML Elements**
+    const XMLCompressor = require('@ah/xml-compressor');
+    
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor();
+    compressor.addPaths('file/to/compress.xml').sortAlphabetDesc();
+---
+
+## [**getCompressedContentSync()**](#getcompressedcontentsync)
+Method to get the XML compressed content from a file path, String content or XMLRoot object on sync mode. XMLRoot object has priority over String content to be processed, and String content priority over path. For example, if you pass content and XMLRoot object to compressor, this method will be run with the XMLRoot data.
 
 ### **Return:**
 Returns an String with the compressed content
@@ -66,6 +343,7 @@ This method can throw the next exceptions:
 
 - **OperationNotSupportedException**: If the file does not support compression
 - **OperationNotAllowedException**: If the file path is a folder path
+- **DataNotFoundException**: If has no paths, content or XML Root to process
 - **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
 - **FileNotFoundException**: If the file not exists or not have access to it
 - **InvalidFilePathException**: If the path is not a file
@@ -76,8 +354,8 @@ This method can throw the next exceptions:
     const XMLCompressor = require('@ah/xml-compressor');
 
     try{
-        const filePath = 'path/to/the/file';
-        let compressedContent = XMLCompressor.getCompressedContentSync(filePath);
+        const compressor = new XMLCompressor('path/to/the/file');
+        let compressedContent = compressor.getCompressedContentSync();
          // handle success
     } catch(error){
         // handle errors
@@ -88,25 +366,17 @@ This method can throw the next exceptions:
     const XMLCompressor = require('@ah/xml-compressor');
 
     try{
-        const filePath = 'path/to/the/file';
-        const sortOrder = XMLCompressor.SORT_ORDER.SIMPLE_FIRST;
-        let compressedContent = XMLCompressor.getCompressedContentSync(filePath, sortOrder);
+        const sortOrder = XMLCompressor.getSortOrderValues();
+        const compressor = new XMLCompressor('path/to/the/file', sortOrder.SIMPLE_FIRST);
+        let compressedContent = compressor.getCompressedContentSync();
          // handle success
     } catch(error){
         // handle errors
     }
 ---
 
-## [**getCompressedContent(filePathOrXMLRoot, sortOrder)**](#getcompressedcontentfilepathorxmlroot-sortorder)
+## [**getCompressedContent()**](#getcompressedcontent)
 Method to get the XML Content compressed and ordered in Async mode
-
-### **Parameters:**
-  - **filePathOrXMLRoot**: File path to compress or Object with XML Data (XMLParser)
-    - String | Object 
-  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
-    - String
-  - **callback**: Callback function to handle compress progress
-    - Function
 
 ### **Return:**
 Returns a String Promise with the compressed content
@@ -117,6 +387,7 @@ This method can throw the next exceptions:
 
 - **OperationNotSupportedException**: If the file does not support compression
 - **OperationNotAllowedException**: If the file path is a folder path
+- **DataNotFoundException**: If has no paths, content or XML Root to process
 - **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
 - **FileNotFoundException**: If the file not exists or not have access to it
 - **InvalidFilePathException**: If the path is not a file
@@ -126,8 +397,8 @@ This method can throw the next exceptions:
 
     const XMLCompressor = require('@ah/xml-compressor');
     try{
-        const filePath = 'path/to/the/file';
-        XMLCompressor.getCompressedContent(filePath).then(function(compressedContent){
+        const compressor = new XMLCompressor('path/to/the/file');
+        compressor.getCompressedContent().then((compressedContent) => {
             // handle success
         }).catch(function(){
             // handle errors
@@ -140,9 +411,9 @@ This method can throw the next exceptions:
 
     const XMLCompressor = require('@ah/xml-compressor');
     try{
-        const sortOrder = XMLCompressor.SORT_ORDER.ALPHABET_DESC;
-        const filePath = 'path/to/the/file';
-        XMLCompressor.getCompressedContent(filePath, sortOrder).then(function(compressedContent){
+        const sortOrder = XMLCompressor.getSortOrderValues();
+        const compressor = new XMLCompressor('path/to/the/file', sortOrder.SIMPLE_FIRST);
+        compressor.getCompressedContent().then((compressedContent) => {
             // handle success
         }).catch(function(){
             // handle errors
@@ -152,19 +423,15 @@ This method can throw the next exceptions:
     }
 ---
 
-## [**compressSync(filePath, sortOrder)**](#compresssyncfilepath-sortorder)
+## [**compressSync()**](#compresssync)
 Method to compress a single XML file in Sync mode
-### **Parameters:**
-  - **filePath**: XML File path to compress
-    - String 
-  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
-    - String
 
 ### **Throws:**
 This method can throw the next exceptions:
 
 - **OperationNotSupportedException**: If the file does not support compression
 - **OperationNotAllowedException**: If the file path is a folder path
+- **DataNotFoundException**: If has no paths to process
 - **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
 - **FileNotFoundException**: If the file not exists or not have access to it
 - **InvalidFilePathException**: If the path is not a file
@@ -176,8 +443,9 @@ This method can throw the next exceptions:
     const XMLCompressor = require('@ah/xml-compressor');
 
     try{
-        const filePath = 'path/to/the/file';
-        XMLCompressor.compressSync(filePath);
+        const compressor = new XMLCompressor('path/to/the/file');
+
+        compressor.compressSync();
         // handle success
     } catch(error){
         // handle errors
@@ -188,25 +456,17 @@ This method can throw the next exceptions:
     const XMLCompressor = require('@ah/xml-compressor');
 
     try{
-        const filePath = 'path/to/the/file';
-        const sortOrder = XMLCompressor.SORT_ORDER.ALPHABET_DESC;
-        XMLCompressor.compressSync(filePath, sortOrder);
+        const sortOrder = XMLCompressor.getSortOrderValues();
+        const compressor = new XMLCompressor('path/to/the/file', sortOrder.SIMPLE_FIRST);
+        compressor.compressSync();
         // handle success
     } catch(error){
         // handle errors
     }
 ---
 
-## [**compress(pathOrPaths, sortOrder, callback)**](#compresspathorpaths-sortorder-callback)
+## [**compress()**](#compress)
 Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode
-
-### **Parameters:**
-  - **pathOrPaths**: File, list of files or folder paths to compress
-    - String | Array<String> 
-  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
-    - String
-  - **callback**: Callback function to handle compress progress
-    - Function
 
 ### **Return:**
 Returns an empty promise
@@ -216,7 +476,7 @@ Returns an empty promise
 This method can throw the next exceptions:
 
 - **OperationNotSupportedException**: If try to compress more than one folder, or file and folders at the same time
-- **DataNotFoundException**: If not found file or folder paths
+- **DataNotFoundException**: If has no paths to process
 - **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
 - **FileNotFoundException**: If the file not exists or not have access to it
 - **InvalidFilePathException**: If the path is not a file
@@ -230,10 +490,11 @@ This method can throw the next exceptions:
 
     const XMLCompressor = require('@ah/xml-compressor');
 
-    const filePath = 'path/to/the/file';
-    XMLCompressor.compress(filePath).then(function(){
+    const compressor = new XMLCompressor('path/to/the/file');
+
+    compressor.compress().then(() => {
          // handle success
-    }).catch(function(){
+    }).catch(() => {
         // handler error
     });
 
@@ -241,17 +502,19 @@ This method can throw the next exceptions:
 
     const XMLCompressor = require('@ah/xml-compressor');
 
-    const filePath = 'path/to/the/file';
-    const sortOrder = XMLCompressor.SORT_ORDER.COMPLEX_FIRST;
-    XMLCompressor.compress(filePath, sortOrder).then(function(){
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor('path/to/the/file', sortOrder.SIMPLE_FIRST);
+
+    compressor.compress().then(() => {
         // handle success
-    }).catch(function(){
+    }).catch(() => {
         // handler error
     });
 
 **Compress a list of XML file Async and Sort Order**
 
     const XMLCompressor = require('@ah/xml-compressor');
+
     const files = [
         'path/to/the/file1',
         'path/to/the/file2',
@@ -260,39 +523,64 @@ This method can throw the next exceptions:
         ...,
         'path/to/the/fileN'
     ];
-    const sortOrder = XMLCompressor.SORT_ORDER.SIMPLE_FIRST;
-    XMLCompressor.compress(files, sortOrder).then(function(){
+
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor(files, sortOrder.SIMPLE_FIRST);
+
+    compressor.compress().then(() => {
          // handle success
-    }).catch(function(){
+    }).catch(() => {
         // handler error
     });
 
-**Compress all XML files from folder Async with Sort Order and Progress Calback**
+**Compress all XML files from folder Async with Sort Order and Progress Handling**
 
     const XMLCompressor = require('@ah/xml-compressor');
 
-    const folderPath = 'path/to/the/folder';
-    const sortOrder = XMLCompressor.SORT_ORDER.COMPLEX_FIRST;
-    XMLCompressor.compress(folderPath, sortOrder, function(file, compressed){
+    const sortOrder = XMLCompressor.getSortOrderValues();
+    const compressor = new XMLCompressor(files, sortOrder.SIMPLE_FIRST);
+
+    compressor.onCompressFailed((data) => {
+        console.log('File ' + data.file + ' does not support compression');
+        console.log('Number of processed files ' + data.processedFiles);
+        console.log('Total files to process ' + data.totalFiles);
+        console.log('Percentage ' + (data.processedFiles / data.totalFiles) * 100);
+    });
+
+    compressor.onCompressFailed((data) => {
+        console.log('File ' + data.file + ' compressed succesfully');
+        console.log('Number of processed files ' + data.processedFiles);
+        console.log('Total files to process ' + data.totalFiles);
+        console.log('Percentage ' + (data.processedFiles / data.totalFiles) * 100);
+    });
+
+    compressor.compress(folderPath, sortOrder, function(file, compressed){
          // Handler progress
          // file parameter have the file path
          // compressed are a boolean with true value if file compresed and false if not compressed
-     }).then(function(){
+     }).then(() => {
          // handle success
-    }).catch(function(){
+    }).catch(() => {
         // handler error
     });
+---
+## [**getSortOrderValues()**](#getsortordervalues)
+Method to get the Sort Order values object
 
-**Get the file compressed content Async**
+### **Return:**
+Return and object with the available sort order values
+- Object
 
-    const XMLCompressor = require('@ah/xml-compressor');
+        {
+            SIMPLE_FIRST: 'simpleFirst',
+            COMPLEX_FIRST: 'complexFirst',
+            ALPHABET_ASC: 'alphabetAsc',
+            ALPHABET_DESC: 'alphabetDesc'
+        }
 
-    try{
-        XMLCompressor.getCompressedContent('path/to/the/file', XMLCompressor.SORT_ORDER.ALPHABET_DESC).then(function(compressedContent){
-            // handle success
-        }).catch(function(){
-            // handle errors
-        });
-    } catch(error){
-        // handle errors
-    }
+The values are:
+
+- **ALPHABET_ASC**: Reorder the XML elements on alphabetical ascending order (a, b, c...). String value: 'alphabetAsc'
+- **ALPHABET_DESC**: Reorder the XML elements on alphabetical descending order (z, y, x...). String value: 'alphabetDesc'
+- **SIMPLE_FIRST**: Reorder the XML elements when simple elements (Strings, Booleans, Dates, Enums... without nested elements) as first elements (also use alphabetical asc order to order the simple and complex types). String value: 'simpleFirst'
+- **COMPLEX_FIRST**: Reorder the XML elements when complex elements (Arrays and Objects with nested elements) as first elements (also use alphabetical asc order to order the simple and complex types). String value: 'complexFirst'
