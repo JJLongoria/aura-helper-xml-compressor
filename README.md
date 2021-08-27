@@ -46,7 +46,7 @@ XML Parsed object with XMLParser from languages module
 
 # [**Constructors**](#constructors)
 
-## [**constructor(projectFolder, apiVersion, namespacePrefix)**](#xmlcompressor-class-constructors-construct)
+## [**constructor(pathOrPaths, sortOrder)**](#xmlcompressor-class-constructors-construct)
 Constructor to create a new XML Compressor object. All parameters are optional and you can use the setters methods to set the values when you want.
 
 ### **Parameters:**
@@ -61,44 +61,47 @@ Constructor to create a new XML Compressor object. All parameters are optional a
 
   - [**onCompressFailed(onFailedCallback)**](#oncompressfailedonfailedcallback)
 
+    Method to handle when a file compression failed. The callback method will be execute with any file compression error when execute compress() method.
 
   - [**onCompressSuccess(onSuccessCallback)**](#oncompresssuccessonsuccesscallback)
 
+    Method to handle when a file compressed succesfully. The callback method will be execute with any compressed file when execute compress() method.
 
   - [**setPaths(pathOrPaths)**](#setpathspathorpaths)
 
-
+    Method to set the file or folder path or paths to execute compressor operations
 
   - [**addPaths(pathOrPaths)**](#addpathspathorpaths)
 
-
+    Method to add a file or folder path or paths to execute compressor operations
 
   - [**setContent(content)**](#setcontentcontent)
 
-
+    Method to set a XML String content to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths)
 
   - [**setXMLRoot(xmlRoot)**](#setxmlrootxmlroot)
 
-
+    Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @ah/languages module)
 
   - [**setSortOrder(sortOrder)**](#setsortordersortorder)
 
-
+    Method to set the sort order value to sort the XML Elements when compress
 
   - [**sortSimpleFirst()**](#sortsimplefirst)
 
-
+    Method to set Simple XML Elements first as sort order (simpleFirst)
 
   - [**sortComplexFirst()**](#sortcomplexfirst)
 
-
+    Method to set Complex XML Elements first as sort order (complexFirst)
 
   - [**sortAlphabetAsc()**](#sortalphabetasc)
 
-
+    Method to set Alphabet Asc as sort order (alphabetAsc)
 
   - [**sortAlphabetDesc()**](#sortalphabetdesc)
 
+    Method to set Alphabet Desc as sort order (alphabetDesc)
 
   - [**getCompressedContentSync(filePathOrXMLRoot, sortOrder)**](#getcompressedcontentsyncfilepathorxmlroot-sortorder)
   
@@ -117,6 +120,8 @@ Constructor to create a new XML Compressor object. All parameters are optional a
     Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode
 
  - [**getSortOrderValues()**](#getsortordervalues)
+
+    Method to get the Sort Order values object
 
 ---
 ## [**onCompressFailed(onFailedCallback)**](#oncompressfailedonfailedcallback)
