@@ -59,6 +59,47 @@ Constructor to create a new XML Compressor object. All parameters are optional a
 
 # [**Methods**](#methods)
 
+  - [**onCompressFailed(onFailedCallback)**](#oncompressfailedonfailedcallback)
+
+
+  - [**onCompressSuccess(onSuccessCallback)**](#oncompresssuccessonsuccesscallback)
+
+
+  - [**setPaths(pathOrPaths)**](#setpathspathorpaths)
+
+
+
+  - [**addPaths(pathOrPaths)**](#addpathspathorpaths)
+
+
+
+  - [**setContent(content)**](#setcontentcontent)
+
+
+
+  - [**setXMLRoot(xmlRoot)**](#setxmlrootxmlroot)
+
+
+
+  - [**setSortOrder(sortOrder)**](#setsortordersortorder)
+
+
+
+  - [**sortSimpleFirst()**](#sortsimplefirst)
+
+
+
+  - [**sortComplexFirst()**](#sortcomplexfirst)
+
+
+
+  - [**sortAlphabetAsc()**](#sortalphabetasc)
+
+
+
+  - [**sortAlphabetDesc()**](#sortalphabetdesc)
+
+
   - [**getCompressedContentSync(filePathOrXMLRoot, sortOrder)**](#getcompressedcontentsyncfilepathorxmlroot-sortorder)
   
     Method to get the compressed content fron a file on Sync Mode
@@ -75,8 +116,10 @@ Constructor to create a new XML Compressor object. All parameters are optional a
 
     Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode
 
+ - [**getSortOrderValues()**](#getsortordervalues)
+
 ---
-## [**onCompressFailed(onFailedCallback)**]
+## [**onCompressFailed(onFailedCallback)**](#oncompressfailedonfailedcallback)
 Method to handle when a file compression failed. The callback method will be execute with any file compression error when execute compress() method.
 
 ### **Parameters:**
@@ -106,7 +149,7 @@ Return the XMLCompressor instance
     });
 ---
 
-## [**onCompressSuccess(onSuccessCallback)**]
+## [**onCompressSuccess(onSuccessCallback)**](#oncompresssuccessonsuccesscallback)
 Method to handle when a file compressed succesfully. The callback method will be execute with any compressed file when execute compress() method.
 
 ### **Parameters:**
@@ -135,7 +178,7 @@ Return the XMLCompressor instance
         // handler error
     });
 ---
-## [**setPaths(pathOrPaths)**]
+## [**setPaths(pathOrPaths)**](#setpathspathorpaths)
 Method to set the file or folder path or paths to execute compressor operations
 ### **Parameters:**
   - **pathOrPaths**: Path or paths to files or folder to compress 
@@ -167,7 +210,7 @@ Return the XMLCompressor instance
     compressor.setPaths(paths);
 ---
 
-## [**addPaths(pathOrPaths)**]
+## [**addPaths(pathOrPaths)**](#addpathspathorpaths)
 Method to add a file or folder path or paths to execute compressor operations
 
 ### **Parameters:**
@@ -199,7 +242,7 @@ Return the XMLCompressor instance
     const compressor = new XMLCompressor();
     compressor.addPaths(paths).addPaths('add/another/path/or/paths');
 ---
-## [**setContent(content)**]
+## [**setContent(content)**](#setcontentcontent)
 Method to set a XML String content to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths)
 
 ### **Parameters:**
@@ -220,7 +263,7 @@ Return the XMLCompressor instance
     compressor.setContent(xmlContent);
 ---
 
-## [**setXMLRoot(xmlRoot)**]
+## [**setXMLRoot(xmlRoot)**](#setxmlrootxmlroot)
 Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @ah/languages module)
 
 ### **Parameters:**
@@ -243,7 +286,7 @@ Return the XMLCompressor instance
     compressor.setXMLRoot(xmlRoot);
 ---
 
-## [**setSortOrder(sortOrder)**]
+## [**setSortOrder(sortOrder)**](#setsortordersortorder)
 Method to set the sort order value to sort the XML Elements when compress
 
 ### **Parameters:**
@@ -263,7 +306,7 @@ Return the XMLCompressor instance
     compressor.setSortOrder(sortOrder.SIMPLE_FIRST);
 ---
 
-## [**sortSimpleFirst()**]
+## [**sortSimpleFirst()**](#sortsimplefirst)
 Method to set Simple XML Elements first as sort order (simpleFirst)
 
 ### **Return:**
@@ -280,7 +323,7 @@ Return the XMLCompressor instance
     compressor.addPaths('file/to/compress.xml').sortSimpleFirst();
 ---
 
-## [**sortComplexFirst()**]
+## [**sortComplexFirst()**](#sortcomplexfirst)
 Method to set Complex XML Elements first as sort order (complexFirst)
 
 ### **Return:**
@@ -297,7 +340,7 @@ Return the XMLCompressor instance
     compressor.addPaths('file/to/compress.xml').sortComplexFirst();
 ---
 
-## [**sortAlphabetAsc()**]
+## [**sortAlphabetAsc()**](#sortalphabetasc)
 Method to set Alphabet Asc as sort order (alphabetAsc)
 
 ### **Return:**
@@ -314,7 +357,7 @@ Return the XMLCompressor instance
     compressor.addPaths('file/to/compress.xml').sortAlphabetAsc();
 ---
 
-## [**sortAlphabetDesc()**]
+## [**sortAlphabetDesc()**](#sortalphabetdesc)
 Method to set Alphabet Desc as sort order (alphabetDesc)
 
 ### **Return:**
