@@ -39,7 +39,7 @@ class XMLCompressor {
      */
     constructor(pathOrPaths, sortOrder) {
         this.paths = pathOrPaths ? XMLUtils.forceArray(pathOrPaths) : [];
-        this.sortOrder = (sortOrder && SORT_ORDER[sortOrder]) ? sortOrder : SORT_ORDER.ALPHABET_ASC;
+        this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_DESC;
         this.content = undefined;
         this.xmlRoot = undefined;
 
@@ -128,7 +128,7 @@ class XMLCompressor {
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
     setSortOrder(sortOrder) {
-        this.sortOrder = (sortOrder && SORT_ORDER[sortOrder]) ? sortOrder : SORT_ORDER.ALPHABET_ASC;
+        this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_DESC;
         return this;
     }
 
@@ -328,7 +328,7 @@ class XMLCompressor {
                 let xmlDefinition;
                 for (const file of files) {
                     try {
-                        const xmlRoot = XMLParser.parseXML(FileReader.readDirSync(file), true);
+                        const xmlRoot = XMLParser.parseXML(FileReader.readFileSync(file), true);
                         const type = Object.keys(xmlRoot)[0];
                         if (!xmlDefinition || type !== oldType)
                             xmlDefinition = XMLDefinitions.getRawDefinition(type);
@@ -337,13 +337,12 @@ class XMLCompressor {
                         if (xmlData === undefined)
                             throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
                         const xmlContent = processXMLData(type, xmlData, xmlDefinition, this.sortOrder);
-                        FileWriter.createFile(file, xmlContent, () => {
-                            filesProcessed++;
-                            this._event.emit(ON_COMPRESS_SUCCESS, {
-                                file: file,
-                                filesProcessed: filesProcessed,
-                                totalFiles: totalFiles
-                            });
+                        FileWriter.createFileSync(file, xmlContent);
+                        filesProcessed++;
+                        this._event.emit(ON_COMPRESS_SUCCESS, {
+                            file: file,
+                            filesProcessed: filesProcessed,
+                            totalFiles: totalFiles
                         });
                     } catch (error) {
                         filesProcessed++;
@@ -436,6 +435,8 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
                     empty = true;
                 }
                 content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue), empty);
+                if (empty)
+                    content += NEWLINE;
                 if (!empty) {
                     for (let key of objectKeys) {
                         const subFieldValue = fieldValue[key];
