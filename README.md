@@ -3,7 +3,7 @@ Module to compress any Salesforce Metadata XML Files to change the format. This 
 
 You can choose the sort order of the elements to reorganize the XML data as you like.
 
-This library depends on [@ah/xml-definitions](https://github.com/JJLongoria/aura-helper-xml-definitions) and support the same versions.
+This library depends on [@aurahelper/xml-definitions](https://github.com/JJLongoria/aura-helper-xml-definitions) and support the same versions.
 
 
 # [**XMLCompressor Class**](#xmlcompressor-class)
@@ -81,7 +81,7 @@ Constructor to create a new XML Compressor object. All parameters are optional a
 
   - [**setXMLRoot(xmlRoot)**](#setxmlrootxmlroot)
 
-    Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @ah/languages module)
+    Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @aurahelper/languages module)
 
   - [**setSortOrder(sortOrder)**](#setsortordersortorder)
 
@@ -269,7 +269,7 @@ Return the XMLCompressor instance
 ---
 
 ## [**setXMLRoot(xmlRoot)**](#setxmlrootxmlroot)
-Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @ah/languages module)
+Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @aurahelper/languages module)
 
 ### **Parameters:**
   - **xmlRoot**: XML Parsed object with XMLParser from languages module
@@ -281,7 +281,7 @@ Return the XMLCompressor instance
 
 ### **Examples:**
 **Set XML Root Object to process**
-    const { XMLParser } = require('@ah/languages').XML;
+    const { XMLParser } = require('@aurahelper/languages').XML;
     const XMLCompressor = require('@ah/xml-compressor');
     
     const xmlContent = '<?xml version...';
