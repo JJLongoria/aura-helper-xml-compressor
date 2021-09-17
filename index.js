@@ -1,11 +1,11 @@
 
 const EventEmitter = require('events').EventEmitter;
-const { DataTypes } = require('@ah/core').Values;
-const { XML } = require('@ah/languages');
-const { Validator, Utils } = require('@ah/core').CoreUtils;
-const { OperationNotAllowedException, OperationNotSupportedException, DataNotFoundException } = require('@ah/core').Exceptions;
-const { FileChecker, FileReader, FileWriter } = require('@ah/core').FileSystem;
-const XMLDefinitions = require('@ah/xml-definitions');
+const { DataTypes } = require('@aurahelper/core').Values;
+const { XML } = require('@aurahelper/languages');
+const { Validator, Utils } = require('@aurahelper/core').CoreUtils;
+const { OperationNotAllowedException, OperationNotSupportedException, DataNotFoundException } = require('@aurahelper/core').Exceptions;
+const { FileChecker, FileReader, FileWriter } = require('@aurahelper/core').FileSystem;
+const XMLDefinitions = require('@aurahelper/xml-definitions');
 const XMLParser = XML.XMLParser;
 const XMLUtils = XML.XMLUtils;
 const NEWLINE = '\r\n';
@@ -111,7 +111,7 @@ class XMLCompressor {
     }
 
     /**
-     * Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @ah/languages module)
+     * Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @aurahelper/languages module)
      * @param {Object} xmlRoot XML Parsed object with XMLParser from languages module
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
