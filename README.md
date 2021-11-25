@@ -1,4 +1,13 @@
 # **Aura Helper XML Compressor Module**
+
+[![Version](https://img.shields.io/npm/v/@aurahelper/xml-compressor?logo=npm)](https://www.npmjs.com/package/@aurahelper/xml-compressor)
+[![Total Downloads](https://img.shields.io/npm/dt/@aurahelper/xml-compressor?logo=npm)](https://www.npmjs.com/package/@aurahelper/xml-compressor)
+[![Downloads/Month](https://img.shields.io/npm/dm/@aurahelper/xml-compressor?logo=npm)](https://www.npmjs.com/package/@aurahelper/xml-compressor)
+[![Issues](https://img.shields.io/github/issues/jjlongoria/aura-helper-xml-compressor)](https://github.com/JJLongoria/aura-helper-xml-compressor/issues)
+[![Known Vulnerabilities](https://snyk.io/test/github/JJLongoria/aura-helper-xml-compressor/badge.svg)](https://snyk.io/test/github/JJLongoria/aura-helper-xml-compressor)
+[![Code Size](https://img.shields.io/github/languages/code-size/jjlongoria/aura-helper-xml-compressor)](https://github.com/JJLongoria/aura-helper-xml-compressor)
+[![License](https://img.shields.io/github/license/jjlongoria/aura-helper-xml-compressor?logo=github)](https://github.com/JJLongoria/aura-helper-xml-compressor/blob/master/LICENSE)
+
 Module to compress any Salesforce Metadata XML Files to change the format. This module make easy the work with GIT and other Version Control Systems because grant always the same order of the elements, compress the file for ocuppy less storage and make GIT faster and, specially make merges conflict more easy to resolve because identify the changes better.
 
 You can choose the sort order of the elements to reorganize the XML data as you like.
