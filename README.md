@@ -36,19 +36,19 @@ The fields that start with _ are for internal use only (Does not modify this fie
 
 ### [**paths**](#xmlcompressor-fields-paths)
 File or folder path or paths to execute compress operations
-- Array\<String\>
+- `Array<String>`
 
 ### [**sortOrder**](#xmlcompressor-fields-sortorder)
 Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
-- String
+- `String`
 
 ### [**content**](#xmlcompressor-fields-content)
 String XML content to compress
-- String
+- `String`
 
 ### [**xmlRoot**](#xmlcompressor-fields-xmlroot)
 XML Parsed object with XMLParser from languages module
-- Object
+- `Object`
 
 
 </br>
@@ -60,9 +60,9 @@ Constructor to create a new XML Compressor object. All parameters are optional a
 
 ### **Parameters:**
   - **pathOrPaths**: Path or paths to files or folder to compress
-    - String | Array\<String\>
+    - `String` | `Array<String>`
   - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
-    - String
+    - `String`
 
 </br>
 
@@ -138,14 +138,15 @@ Method to handle when a file compression failed. The callback method will be exe
 
 ### **Parameters:**
   - **onFailedCallback**: Callback function to handle the event
-    - Function 
+    - `Function` 
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 ### **Examples:**
 **Handle failed XML compression**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const compressor = new XMLCompressor('path/to/the/folder');
@@ -161,6 +162,7 @@ Return the XMLCompressor instance
     }).catch(function(){
         // handler error
     });
+```
 ---
 
 ## [**onCompressSuccess(onSuccessCallback)**](#oncompresssuccessonsuccesscallback)
@@ -168,14 +170,15 @@ Method to handle when a file compressed succesfully. The callback method will be
 
 ### **Parameters:**
   - **onSuccessCallback**: Callback function to handle the event
-    - Function 
+    - `Function` 
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 ### **Examples:**
 **Handle success XML compression**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const compressor = new XMLCompressor('path/to/the/folder');
@@ -191,25 +194,28 @@ Return the XMLCompressor instance
     }).catch(function(){
         // handler error
     });
+```
 ---
 ## [**setPaths(pathOrPaths)**](#setpathspathorpaths)
 Method to set the file or folder path or paths to execute compressor operations
 ### **Parameters:**
   - **pathOrPaths**: Path or paths to files or folder to compress 
-    - String | Array\<String\> 
+    - `String` | `Array<String>` 
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 ### **Examples:**
 **Set one path to compress**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const compressor = new XMLCompressor();
     compressor.setPaths('set/only/one/path');
-
+```
 **Set several paths to compress**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const paths = [
@@ -222,6 +228,7 @@ Return the XMLCompressor instance
 
     const compressor = new XMLCompressor();
     compressor.setPaths(paths);
+```
 ---
 
 ## [**addPaths(pathOrPaths)**](#addpathspathorpaths)
@@ -229,20 +236,22 @@ Method to add a file or folder path or paths to execute compressor operations
 
 ### **Parameters:**
   - **pathOrPaths**: Path or paths to files or folder to compress 
-    - String | Array\<String\> 
+    - `String` | `Array<String>` 
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 ### **Examples:**
 **Add one path to compress**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const compressor = new XMLCompressor();
     compressor.addPaths('set/only/one/path');
-
+```
 **Add several paths to compress**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const paths = [
@@ -255,26 +264,29 @@ Return the XMLCompressor instance
 
     const compressor = new XMLCompressor();
     compressor.addPaths(paths).addPaths('add/another/path/or/paths');
+```
 ---
 ## [**setContent(content)**](#setcontentcontent)
 Method to set a XML String content to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths)
 
 ### **Parameters:**
   - **content**: String XML content to compress 
-    - String
+    - `String`
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 ### **Examples:**
 **Set XML Content to process**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     
     const xmlContent = '<?xml version...';
 
     const compressor = new XMLCompressor();
     compressor.setContent(xmlContent);
+```
 ---
 
 ## [**setXMLRoot(xmlRoot)**](#setxmlrootxmlroot)
@@ -282,14 +294,15 @@ Method to set the XML Parsed object to execute compressor operations (except com
 
 ### **Parameters:**
   - **xmlRoot**: XML Parsed object with XMLParser from languages module
-    - Object
+    - `Object`
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 ### **Examples:**
 **Set XML Root Object to process**
+```javascript
     const { XMLParser } = require('@aurahelper/languages').XML;
     const XMLCompressor = require('@aurahelper/xml-compressor');
     
@@ -298,6 +311,7 @@ Return the XMLCompressor instance
 
     const compressor = new XMLCompressor();
     compressor.setXMLRoot(xmlRoot);
+```
 ---
 
 ## [**setSortOrder(sortOrder)**](#setsortordersortorder)
@@ -305,19 +319,21 @@ Method to set the sort order value to sort the XML Elements when compress
 
 ### **Parameters:**
   - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default).
-    - String
+    - `String`
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 ### **Examples:**
 **Set Sort order to order XML Elements**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     
     const sortOrder = XMLCompressor.getSortOrderValues();
     const compressor = new XMLCompressor();
     compressor.setSortOrder(sortOrder.SIMPLE_FIRST);
+```
 ---
 
 ## [**sortSimpleFirst()**](#sortsimplefirst)
@@ -325,16 +341,18 @@ Method to set Simple XML Elements first as sort order (simpleFirst)
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 
 ### **Examples:**
 **Set Simple first sort order to order XML Elements**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     
     const sortOrder = XMLCompressor.getSortOrderValues();
     const compressor = new XMLCompressor();
     compressor.addPaths('file/to/compress.xml').sortSimpleFirst();
+```
 ---
 
 ## [**sortComplexFirst()**](#sortcomplexfirst)
@@ -342,16 +360,18 @@ Method to set Complex XML Elements first as sort order (complexFirst)
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 
 ### **Examples:**
 **Set Complex first sort order to order XML Elements**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     
     const sortOrder = XMLCompressor.getSortOrderValues();
     const compressor = new XMLCompressor();
     compressor.addPaths('file/to/compress.xml').sortComplexFirst();
+```
 ---
 
 ## [**sortAlphabetAsc()**](#sortalphabetasc)
@@ -359,16 +379,18 @@ Method to set Alphabet Asc as sort order (alphabetAsc)
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 
 ### **Examples:**
 **Set Alphabet asc sort order to order XML Elements**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     
     const sortOrder = XMLCompressor.getSortOrderValues();
     const compressor = new XMLCompressor();
     compressor.addPaths('file/to/compress.xml').sortAlphabetAsc();
+```
 ---
 
 ## [**sortAlphabetDesc()**](#sortalphabetdesc)
@@ -376,16 +398,18 @@ Method to set Alphabet Desc as sort order (alphabetDesc)
 
 ### **Return:**
 Return the XMLCompressor instance
-- XMLCompressor
+- `XMLCompressor`
 
 
 ### **Examples:**
 **Set Alphabet desc sort order to order XML Elements**
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     
     const sortOrder = XMLCompressor.getSortOrderValues();
     const compressor = new XMLCompressor();
     compressor.addPaths('file/to/compress.xml').sortAlphabetDesc();
+```
 ---
 
 ## [**getCompressedContentSync()**](#getcompressedcontentsync)
@@ -393,21 +417,21 @@ Method to get the XML compressed content from a file path, String content or XML
 
 ### **Return:**
 Returns an String with the compressed content
-- String
+- `String`
 
 ### **Throws:**
 This method can throw the next exceptions:
 
-- **OperationNotSupportedException**: If the file does not support compression
-- **OperationNotAllowedException**: If the file path is a folder path
-- **DataNotFoundException**: If has no paths, content or XML Root to process
-- **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
-- **FileNotFoundException**: If the file not exists or not have access to it
-- **InvalidFilePathException**: If the path is not a file
+- **`OperationNotSupportedException`**: If the file does not support compression
+- **`OperationNotAllowedException`**: If the file path is a folder path
+- **`DataNotFoundException`**: If has no paths, content or XML Root to process
+- **`WrongFilePathException`**: If the file Path is not a String or can't convert to absolute path
+- **`FileNotFoundException`**: If the file not exists or not have access to it
+- **`InvalidFilePathException`**: If the path is not a file
 
 ### **Examples:**
 **Get the file compressed content Sync**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     try{
@@ -417,9 +441,9 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
-
+```
 **Get the file compressed content Sync with sort order**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     try{
@@ -430,6 +454,7 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
+```
 ---
 
 ## [**getCompressedContent()**](#getcompressedcontent)
@@ -437,21 +462,21 @@ Method to get the XML Content compressed and ordered in Async mode
 
 ### **Return:**
 Returns a String Promise with the compressed content
-- Promise\<String\>
+- `Promise<String>`
 
 ### **Throws:**
 This method can throw the next exceptions:
 
-- **OperationNotSupportedException**: If the file does not support compression
-- **OperationNotAllowedException**: If the file path is a folder path
-- **DataNotFoundException**: If has no paths, content or XML Root to process
-- **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
-- **FileNotFoundException**: If the file not exists or not have access to it
-- **InvalidFilePathException**: If the path is not a file
+- **`OperationNotSupportedException`**: If the file does not support compression
+- **`OperationNotAllowedException`**: If the file path is a folder path
+- **`DataNotFoundException`**: If has no paths, content or XML Root to process
+- **`WrongFilePathException`**: If the file Path is not a String or can't convert to absolute path
+- **`FileNotFoundException`**: If the file not exists or not have access to it
+- **`InvalidFilePathException`**: If the path is not a file
 
 ### **Examples:**
 **Get the file compressed content Async**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     try{
         const compressor = new XMLCompressor('path/to/the/file');
@@ -463,9 +488,9 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
-
+```
 **Get the file compressed content Async with sort order**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
     try{
         const sortOrder = XMLCompressor.getSortOrderValues();
@@ -478,6 +503,7 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
+```
 ---
 
 ## [**compressSync()**](#compresssync)
@@ -486,17 +512,17 @@ Method to compress a single XML file in Sync mode
 ### **Throws:**
 This method can throw the next exceptions:
 
-- **OperationNotSupportedException**: If the file does not support compression
-- **OperationNotAllowedException**: If the file path is a folder path
-- **DataNotFoundException**: If has no paths to process
-- **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
-- **FileNotFoundException**: If the file not exists or not have access to it
-- **InvalidFilePathException**: If the path is not a file
+- **`OperationNotSupportedException`**: If the file does not support compression
+- **`OperationNotAllowedException`**: If the file path is a folder path
+- **`DataNotFoundException`**: If has no paths to process
+- **`WrongFilePathException`**: If the file Path is not a String or can't convert to absolute path
+- **`FileNotFoundException`**: If the file not exists or not have access to it
+- **`InvalidFilePathException`**: If the path is not a file
 
 ### **Examples:**
 
 **Compress a single XML file Sync**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     try{
@@ -507,9 +533,9 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
-
+```
 **Compress a single XML file Sync with sort order**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     try{
@@ -520,6 +546,7 @@ This method can throw the next exceptions:
     } catch(error){
         // handle errors
     }
+```
 ---
 
 ## [**compress()**](#compress)
@@ -527,24 +554,24 @@ Method to compress a XML File, a List of files or entire folder (and subfolders)
 
 ### **Return:**
 Returns an empty promise
-- Promise
+- `Promise`
 
 ### **Throws:**
 This method can throw the next exceptions:
 
-- **OperationNotSupportedException**: If try to compress more than one folder, or file and folders at the same time
-- **DataNotFoundException**: If has no paths to process
-- **WrongFilePathException**: If the file Path is not a String or can't convert to absolute path
-- **FileNotFoundException**: If the file not exists or not have access to it
-- **InvalidFilePathException**: If the path is not a file
-- **WrongDirectoryPathException**: If the folder Path is not a String or cant convert to absolute path
-- **DirectoryNotFoundException**: If the directory not exists or not have access to it
-- **InvalidDirectoryPathException**: If the path is not a directory
+- **`OperationNotSupportedException`**: If try to compress more than one folder, or file and folders at the same time
+- **`DataNotFoundException`**: If has no paths to process
+- **`WrongFilePathException`**: If the file Path is not a String or can't convert to absolute path
+- **`FileNotFoundException`**: If the file not exists or not have access to it
+- **`InvalidFilePathException`**: If the path is not a file
+- **`WrongDirectoryPathException`**: If the folder Path is not a String or cant convert to absolute path
+- **`DirectoryNotFoundException`**: If the directory not exists or not have access to it
+- **`InvalidDirectoryPathException`**: If the path is not a directory
 
 ### **Examples:**
 
 **Compress a single XML file Async**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const compressor = new XMLCompressor('path/to/the/file');
@@ -554,9 +581,9 @@ This method can throw the next exceptions:
     }).catch(() => {
         // handler error
     });
-
+```
 **Compress a single XML file Async and Sort Order**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const sortOrder = XMLCompressor.getSortOrderValues();
@@ -567,9 +594,9 @@ This method can throw the next exceptions:
     }).catch(() => {
         // handler error
     });
-
+```
 **Compress a list of XML file Async and Sort Order**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const files = [
@@ -589,9 +616,9 @@ This method can throw the next exceptions:
     }).catch(() => {
         // handler error
     });
-
+```
 **Compress all XML files from folder Async with Sort Order and Progress Handling**
-
+```javascript
     const XMLCompressor = require('@aurahelper/xml-compressor');
 
     const sortOrder = XMLCompressor.getSortOrderValues();
@@ -620,20 +647,23 @@ This method can throw the next exceptions:
     }).catch(() => {
         // handler error
     });
+```
 ---
 ## [**getSortOrderValues()**](#getsortordervalues)
 Method to get the Sort Order values object
 
 ### **Return:**
 Return and object with the available sort order values
-- Object
-
-        {
-            SIMPLE_FIRST: 'simpleFirst',
-            COMPLEX_FIRST: 'complexFirst',
-            ALPHABET_ASC: 'alphabetAsc',
-            ALPHABET_DESC: 'alphabetDesc'
-        }
+- `Object`
+- 
+```javascript
+    {
+        SIMPLE_FIRST: 'simpleFirst',
+        COMPLEX_FIRST: 'complexFirst',
+        ALPHABET_ASC: 'alphabetAsc',
+        ALPHABET_DESC: 'alphabetDesc'
+    }
+```
 
 The values are:
 
