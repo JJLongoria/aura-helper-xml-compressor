@@ -1,3 +1,5 @@
 /node_modules
 /coverage
-.vscode
+dist
+src/test/assets/SFDXProject
+src/test/assets/folderToCreate
