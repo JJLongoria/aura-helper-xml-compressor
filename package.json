@@ -11,7 +11,8 @@
         "lint": "eslint src --ext ts",
         "lint-fix": "eslint src --ext ts --fix",
         "watch": "tsc -watch -p ./",
-        "test": "jest --coverage --runInBand"
+        "test": "jest --coverage --runInBand",
+        "test-watch": "jest --coverage --runInBand --watch"
     },
     "keywords": [
         "aura-helper-framework",
