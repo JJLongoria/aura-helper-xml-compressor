@@ -11,7 +11,7 @@ describe('Testing index.js', () => {
         writeFileSync('./src/test/assets/result.xml', xmlContent);
         unlinkSync('./src/test/assets/result.xml');
     });
-    /*test('Testing Get Compressed Content on Folder Sync', () => {
+    test('Testing Get Compressed Content on Folder Sync', () => {
         let xmlContent = readFileSync('./src/test/assets/fileUncompressed.xml', 'utf8');
         writeFileSync('./src/test/assets/result.xml', xmlContent);
         try {
@@ -201,5 +201,5 @@ describe('Testing index.js', () => {
         compressor.sortSimpleFirst();
         await compressor.compress();
         return;
-    });*/
+    });
 });
