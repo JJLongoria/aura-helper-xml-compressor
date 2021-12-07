@@ -1,24 +1,30 @@
+import { DataNotFoundException, FileChecker, OperationNotAllowedException, CoreUtils, FileReader, OperationNotSupportedException, FileWriter, Datatypes, XMLSortOrder } from "@aurahelper/core";
+import { XML } from "@aurahelper/languages";
+import { XMLDefinitions } from "@aurahelper/xml-definitions";
+import EventEmitter from "events";
 
-const EventEmitter = require('events').EventEmitter;
-const { DataTypes } = require('@aurahelper/core').Values;
-const { XML } = require('@aurahelper/languages');
-const { Validator, Utils } = require('@aurahelper/core').CoreUtils;
-const { OperationNotAllowedException, OperationNotSupportedException, DataNotFoundException } = require('@aurahelper/core').Exceptions;
-const { FileChecker, FileReader, FileWriter } = require('@aurahelper/core').FileSystem;
-const XMLDefinitions = require('@aurahelper/xml-definitions');
-const XMLParser = XML.XMLParser;
 const XMLUtils = XML.XMLUtils;
+const XMLParser = XML.XMLParser;
+const Validator = CoreUtils.Validator;
+const Utils = CoreUtils.Utils;
+
 const NEWLINE = '\r\n';
 
-const SORT_ORDER = {
+const SORT_ORDER: XMLSortOrder = {
     SIMPLE_FIRST: 'simpleFirst',
     COMPLEX_FIRST: 'complexFirst',
     ALPHABET_ASC: 'alphabetAsc',
     ALPHABET_DESC: 'alphabetDesc'
-}
+};
 
 const ON_COMPRESS_SUCCESS = 'compressSucess';
 const ON_COMPRESS_FAILED = 'compressFailed';
+
+export interface XMLCompressorStatus {
+    file: string;
+    filesProcessed: number;
+    totalFiles: number;
+}
 
 /**
  * Class to compress any Salesforce Metadata XML Files to change the format
@@ -30,14 +36,23 @@ const ON_COMPRESS_FAILED = 'compressFailed';
  * 
  * The setters methods are defined like a builder pattern to make it more usefull
  */
-class XMLCompressor {
+export class XMLCompressor {
+
+    paths: string[];
+    sortOrder: string;
+    content?: string;
+    xmlRoot?: any;
+    private _xmlDefinition?: any;
+    private _compressedContent?: string;
+    private _event: EventEmitter;
+
 
     /**
      * Constructor to create a new XML Compressor object
-     * @param {String | Array<String>} [pathOrPaths] Path or paths to files or folder to compress 
-     * @param {String} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+     * @param {string | string[]} [pathOrPaths] Path or paths to files or folder to compress 
+     * @param {string} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
      */
-    constructor(pathOrPaths, sortOrder) {
+    constructor(pathOrPaths?: string | string[], sortOrder?: string) {
         this.paths = pathOrPaths ? XMLUtils.forceArray(pathOrPaths) : [];
         this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_DESC;
         this.content = undefined;
@@ -54,7 +69,7 @@ class XMLCompressor {
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    onCompressFailed(onFailedCallback) {
+    onCompressFailed(onFailedCallback: (status: XMLCompressorStatus) => void): XMLCompressor {
         this._event.on(ON_COMPRESS_FAILED, onFailedCallback);
         return this;
     }
@@ -65,33 +80,35 @@ class XMLCompressor {
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    onCompressSuccess(onSuccessCallback) {
+    onCompressSuccess(onSuccessCallback: (status: XMLCompressorStatus) => void): XMLCompressor {
         this._event.on(ON_COMPRESS_SUCCESS, onSuccessCallback);
         return this;
     }
 
     /**
      * Method to set the file or folder path or paths to execute compressor operations
-     * @param {String | Array<String>} pathOrPaths Path or paths to files or folder to compress 
+     * @param {string | string[]} pathOrPaths Path or paths to files or folder to compress 
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    setPaths(pathOrPaths) {
-        if (!this.paths)
+    setPaths(pathOrPaths: string | string[]): XMLCompressor {
+        if (!this.paths) {
             this.paths = [];
+        }
         this.paths = XMLUtils.forceArray(pathOrPaths);
         return this;
     }
 
     /**
      * Method to add a file or folder path or paths to execute compressor operations
-     * @param {String | Array<String>} pathOrPaths Path or paths to files or folder to compress 
+     * @param {string | string[]} pathOrPaths Path or paths to files or folder to compress 
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    addPaths(pathOrPaths) {
-        if (!this.paths)
+    addPaths(pathOrPaths: string | string[]): XMLCompressor {
+        if (!this.paths) {
             this.paths = [];
+        }
         if (pathOrPaths) {
             pathOrPaths = XMLUtils.forceArray(pathOrPaths);
             this.paths = this.paths.concat(pathOrPaths);
@@ -100,34 +117,34 @@ class XMLCompressor {
     }
 
     /**
-     * Method to set a XML String content to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths)
-     * @param {String} content String XML content to compress. 
+     * Method to set a XML string content to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths)
+     * @param {string} content string XML content to compress. 
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    setContent(content) {
+    setContent(content: string): XMLCompressor {
         this.content = content;
         return this;
     }
 
     /**
      * Method to set the XML Parsed object to execute compressor operations (except compress() and compressSync() and methods because only work with file or folder paths) (Usgin XMLParser from @aurahelper/languages module)
-     * @param {Object} xmlRoot XML Parsed object with XMLParser from languages module
+     * @param {any} xmlRoot XML Parsed object with XMLParser from languages module
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    setXMLRoot(xmlRoot) {
+    setXMLRoot(xmlRoot: any): XMLCompressor {
         this.xmlRoot = xmlRoot;
         return this;
     }
 
     /**
      * Method to set the sort order value to sort the XML Elements when compress
-     * @param {String} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default).
+     * @param {string} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default).
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    setSortOrder(sortOrder) {
+    setSortOrder(sortOrder: string): XMLCompressor {
         this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_DESC;
         return this;
     }
@@ -136,7 +153,7 @@ class XMLCompressor {
      * Method to set Simple XML Elements first as sort order (simpleFirst)
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    sortSimpleFirst() {
+    sortSimpleFirst(): XMLCompressor {
         this.sortOrder = SORT_ORDER.SIMPLE_FIRST;
         return this;
     }
@@ -145,7 +162,7 @@ class XMLCompressor {
      * Method to set Complex XML Elements first as sort order (complexFirst)
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    sortComplexFirst() {
+    sortComplexFirst(): XMLCompressor {
         this.sortOrder = SORT_ORDER.COMPLEX_FIRST;
         return this;
     }
@@ -154,7 +171,7 @@ class XMLCompressor {
      * Method to set Alphabet Asc as sort order (alphabetAsc)
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    sortAlphabetAsc() {
+    sortAlphabetAsc(): XMLCompressor {
         this.sortOrder = SORT_ORDER.ALPHABET_ASC;
         return this;
     }
@@ -163,86 +180,94 @@ class XMLCompressor {
      * Method to set Alphabet Desc as sort order (alphabetDesc)
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
-    sortAlphabetDesc() {
+    sortAlphabetDesc(): XMLCompressor {
         this.sortOrder = SORT_ORDER.ALPHABET_DESC;
         return this;
     }
 
     /**
-     * Method to get the XML compressed content from a file path, String content or XMLRoot object on sync mode.
-     * XMLRoot object has priority over String content to be processed, and String content priority over path. For example, if you pass content and XMLRoot object to compressor, this method will be run with the XMLRoot data.
-     * @returns {String} Returns a String with the compressed content
+     * Method to get the XML compressed content from a file path, string content or XMLRoot object on sync mode.
+     * XMLRoot object has priority over string content to be processed, and string content priority over path. For example, if you pass content and XMLRoot object to compressor, this method will be run with the XMLRoot data.
+     * @returns {string} Returns a string with the compressed content
      * 
      * @throws {OperationNotSupportedException} If the file does not support compression
      * @throws {OperationNotAllowedException} If the file path is a folder path
      * @throws {DataNotFoundException} If has no paths, content or XML Root to process
-     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {WrongFilePathException} If the file Path is not a string or can't convert to absolute path
      * @throws {FileNotFoundException} If the file not exists or not have access to it
      * @throws {InvalidFilePathException} If the path is not a file
      */
-    getCompressedContentSync() {
+    getCompressedContentSync(): string {
         if (this._compressedContent) {
             return this._compressedContent;
         }
         if (!this.content && !this.xmlRoot) {
-            if (this.paths.length > 1)
+            if (this.paths.length > 1) {
                 throw new OperationNotAllowedException('Can\'t get compressed content from more than one file');
-            else if (!this.paths || this.paths.length === 0)
+            } else if (!this.paths || this.paths.length === 0) {
                 throw new DataNotFoundException('Not path, content or XML Root to get the compressed XML content');
-            else if (FileChecker.isDirectory(this.paths[0]))
+            } else if (FileChecker.isDirectory(this.paths[0])) {
                 throw new OperationNotAllowedException('Can\'t get compressed content from a directory. Select a single file');
+            }
             this.paths[0] = Validator.validateFilePath(this.paths[0]);
             this.content = FileReader.readFileSync(this.paths[0]);
         }
-        if (!this.xmlRoot)
+        if (!this.xmlRoot) {
             this.xmlRoot = XMLParser.parseXML(this.content, true);
+        }
         const type = Object.keys(this.xmlRoot)[0];
-        if (!this._xmlDefinition)
+        if (!this._xmlDefinition) {
             this._xmlDefinition = XMLDefinitions.getRawDefinition(type);
+        }
         const xmlData = XMLUtils.cleanXMLFile(this._xmlDefinition, this.xmlRoot[type]);
-        if (xmlData === undefined)
+        if (xmlData === undefined) {
             throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+        }
         this._compressedContent = processXMLData(type, xmlData, this._xmlDefinition, this.sortOrder);
         return this._compressedContent;
     }
 
     /**
-     * Method to get the XML compressed content from a file path, String content or XMLRoot object on async mode.
-     * XMLRoot object has priority over String content to be processed, and String content priority over path. For example, if you pass content and XMLRoot object to compressor, this method will be run with the XMLRoot data.
-     * @returns {Promise<String>} Returns a String Promise with the compressed content
+     * Method to get the XML compressed content from a file path, string content or XMLRoot object on async mode.
+     * XMLRoot object has priority over string content to be processed, and string content priority over path. For example, if you pass content and XMLRoot object to compressor, this method will be run with the XMLRoot data.
+     * @returns {Promise<string>} Returns a string Promise with the compressed content
      * 
      * @throws {OperationNotSupportedException} If the file does not support compression
      * @throws {OperationNotAllowedException} If the file path is a folder path
      * @throws {DataNotFoundException} If has no paths, content or XML Root to process
-     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {WrongFilePathException} If the file Path is not a string or can't convert to absolute path
      * @throws {FileNotFoundException} If the file not exists or not have access to it
      * @throws {InvalidFilePathException} If the path is not a file
      */
-    getCompressedContent() {
-        return new Promise((resolve, reject) => {
+    getCompressedContent(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
             try {
                 if (this._compressedContent) {
                     resolve(this._compressedContent);
                     return;
                 }
                 if (!this.content && !this.xmlRoot) {
-                    if (this.paths.length > 1)
+                    if (this.paths.length > 1) {
                         throw new OperationNotAllowedException('Can\'t get compressed content from more than one file');
-                    else if (!this.paths || this.paths.length === 0)
+                    } else if (!this.paths || this.paths.length === 0) {
                         throw new DataNotFoundException('Not path, content or XML Root to get the compressed XML content');
-                    else if (FileChecker.isDirectory(this.paths[0]))
+                    } else if (FileChecker.isDirectory(this.paths[0])) {
                         throw new OperationNotAllowedException('Can\'t get compressed content from a directory. Select a single file');
+                    }
                     this.paths[0] = Validator.validateFilePath(this.paths[0]);
                     this.content = FileReader.readFileSync(this.paths[0]);
                 }
-                if (!this.xmlRoot)
+                if (!this.xmlRoot) {
                     this.xmlRoot = XMLParser.parseXML(this.content, true);
+                }
                 const type = Object.keys(this.xmlRoot)[0];
-                if (!this._xmlDefinition)
+                if (!this._xmlDefinition) {
                     this._xmlDefinition = XMLDefinitions.getRawDefinition(type);
+                }
                 const xmlData = XMLUtils.cleanXMLFile(this._xmlDefinition, this.xmlRoot[type]);
-                if (xmlData === undefined)
+                if (xmlData === undefined) {
                     throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+                }
                 this._compressedContent = processXMLData(type, xmlData, this._xmlDefinition, this.sortOrder);
                 resolve(this._compressedContent);
             } catch (error) {
@@ -257,25 +282,27 @@ class XMLCompressor {
      * @throws {OperationNotSupportedException} If the file does not support compression
      * @throws {OperationNotAllowedException} If the file path is a folder path
      * @throws {DataNotFoundException} If has no paths to process
-     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {WrongFilePathException} If the file Path is not a string or can't convert to absolute path
      * @throws {FileNotFoundException} If the file not exists or not have access to it
      * @throws {InvalidFilePathException} If the path is not a file
      */
-    compressSync() {
-        if (this.paths.length > 1)
+    compressSync(): void {
+        if (this.paths.length > 1) {
             throw new OperationNotAllowedException('Can\'t compress more than one file on sync mode. Execute compress() method compress several files');
-        else if (!this.paths || this.paths.length === 0)
+        } else if (!this.paths || this.paths.length === 0) {
             throw new DataNotFoundException('Has no paths to get the compressed XML content');
-        else if (FileChecker.isDirectory(this.paths[0]))
+        } else if (FileChecker.isDirectory(this.paths[0])) {
             throw new OperationNotAllowedException('Can\'t compress directory on sync mode. Execute compress() method to compress entire directory');
+        }
         this.paths[0] = Validator.validateFilePath(this.paths[0]);
         this.content = FileReader.readFileSync(this.paths[0]);
         this.xmlRoot = XMLParser.parseXML(this.content, true);
         const type = Object.keys(this.xmlRoot)[0];
         this._xmlDefinition = XMLDefinitions.getRawDefinition(type);
         const xmlData = XMLUtils.cleanXMLFile(this._xmlDefinition, this.xmlRoot[type]);
-        if (xmlData === undefined)
+        if (xmlData === undefined) {
             throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+        }
         this._compressedContent = processXMLData(type, xmlData, this._xmlDefinition, this.sortOrder);
         FileWriter.createFileSync(this.paths[0], this._compressedContent);
     }
@@ -284,19 +311,19 @@ class XMLCompressor {
      * Method to compress a XML File, a List of files or entire folder (and subfolders) in Async mode. This methods fire some events to handle compress progress.
      * Use onCompressFailed() and onCompressSuccess() methods to handling progress.
      * 
-     * @returns {Promise<any>} Returns an empty Promise
+     * @returns {Promise<void>} Returns an empty Promise
      * 
      * @throws {OperationNotSupportedException} If try to compress more than one folder, or file and folders at the same time
      * @throws {DataNotFoundException} If has no paths to process
-     * @throws {WrongFilePathException} If the file Path is not a String or can't convert to absolute path
+     * @throws {WrongFilePathException} If the file Path is not a string or can't convert to absolute path
      * @throws {FileNotFoundException} If the file not exists or not have access to it
      * @throws {InvalidFilePathException} If the path is not a file
-     * @throws {WrongDirectoryPathException} If the folder Path is not a String or cant convert to absolute path
+     * @throws {WrongDirectoryPathException} If the folder Path is not a string or cant convert to absolute path
      * @throws {DirectoryNotFoundException} If the directory not exists or not have access to it
      * @throws {InvalidDirectoryPathException} If the path is not a directory
      */
-    compress() {
-        return new Promise(async (resolve, reject) => {
+    compress(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
             try {
                 const pathsToCompress = [];
                 let nFiles = 0;
@@ -310,17 +337,19 @@ class XMLCompressor {
                         pathsToCompress.push(Validator.validateFolderPath(path));
                     }
                 }
-                if (nFiles == 0 && nFolders == 0)
+                if (nFiles === 0 && nFolders === 0) {
                     throw new DataNotFoundException('Not files or folders selected to compress');
-                else if (nFiles > 0 && nFolders > 0)
+                } else if (nFiles > 0 && nFolders > 0) {
                     throw new OperationNotSupportedException('Can\'t compress files and folders at the same time. Please, add only folders or files to compress');
-                else if (nFolders > 1)
+                } else if (nFolders > 1) {
                     throw new OperationNotSupportedException('Can\'t compress more than one folder at the same time.');
+                }
                 let files;
-                if (nFolders == 1)
+                if (nFolders === 1) {
                     files = await FileReader.getAllFiles(pathsToCompress[0], ['.xml']);
-                else
+                } else {
                     files = pathsToCompress;
+                }
                 Utils.sort(files);
                 const totalFiles = files.length;
                 let filesProcessed = 0;
@@ -330,12 +359,14 @@ class XMLCompressor {
                     try {
                         const xmlRoot = XMLParser.parseXML(FileReader.readFileSync(file), true);
                         const type = Object.keys(xmlRoot)[0];
-                        if (!xmlDefinition || type !== oldType)
+                        if (!xmlDefinition || type !== oldType) {
                             xmlDefinition = XMLDefinitions.getRawDefinition(type);
+                        }
                         oldType = type;
                         const xmlData = XMLUtils.cleanXMLFile(xmlDefinition, xmlRoot[type]);
-                        if (xmlData === undefined)
+                        if (xmlData === undefined) {
                             throw new OperationNotSupportedException('The selected XML content of MetadataType ' + type + ' does not support compression');
+                        }
                         const xmlContent = processXMLData(type, xmlData, xmlDefinition, this.sortOrder);
                         FileWriter.createFileSync(file, xmlContent);
                         filesProcessed++;
@@ -355,37 +386,40 @@ class XMLCompressor {
                 }
                 resolve();
             } catch (error) {
-                reject(error)
+                reject(error);
             }
         });
     }
 
     /**
      * Method to get the Sort Order values object
-     * @returns {Object} Return and object with the available sort order values
+     * @returns {XMLSortOrder} Return and object with the available sort order values
      */
-    static getSortOrderValues() {
+    static getSortOrderValues(): XMLSortOrder {
         return SORT_ORDER;
     }
 }
-module.exports = XMLCompressor;
 
-function processXMLData(type, xmlData, xmlDefinition, sortOrder) {
+function processXMLData(type: string, xmlData: any, xmlDefinition: any, sortOrder: string) {
     let content = XMLParser.getXMLFirstLine() + NEWLINE;
     let attributes = XMLUtils.getAttributes(xmlData);
     let indent = 0;
     let objectKeys = getOrderedKeys(xmlDefinition, sortOrder);
     content += XMLParser.getStartTag(type, attributes) + NEWLINE;
     try {
-        for (let key of objectKeys) {
-            const fieldValue = xmlData[key];
-            if (fieldValue != undefined) {
-                if (!Array.isArray(fieldValue) && typeof fieldValue === 'object' && Object.keys(fieldValue).length === 0)
-                    continue;
-                if (Array.isArray(fieldValue) && fieldValue.length === 0)
-                    continue;
-                const fieldDefinition = xmlDefinition[key];
-                content += processXMLField(fieldDefinition, fieldValue, sortOrder, indent + 1);
+        if (objectKeys) {
+            for (let key of objectKeys) {
+                const fieldValue = xmlData[key];
+                if (fieldValue !== undefined) {
+                    if (!Array.isArray(fieldValue) && typeof fieldValue === 'object' && Object.keys(fieldValue).length === 0) {
+                        continue;
+                    }
+                    if (Array.isArray(fieldValue) && fieldValue.length === 0) {
+                        continue;
+                    }
+                    const fieldDefinition = xmlDefinition[key];
+                    content += processXMLField(xmlDefinition, fieldDefinition, fieldValue, sortOrder, indent + 1);
+                }
             }
         }
     } catch (error) {
@@ -395,30 +429,34 @@ function processXMLData(type, xmlData, xmlDefinition, sortOrder) {
     return content;
 }
 
-function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
+function processXMLField(typeDefinition: any, fieldDefinition: any, fieldValue: any, sortOrder: string, indent: number) {
     let content = '';
     if (mustCompress(fieldDefinition)) {
         if (isComplexField(fieldDefinition)) {
             let objectKeys = getOrderedKeys(fieldDefinition, sortOrder);
-            if (Array.isArray(fieldValue) || fieldDefinition.datatype === DataTypes.ARRAY) {
+            if (Array.isArray(fieldValue) || fieldDefinition.datatype === Datatypes.ARRAY) {
                 fieldValue = XMLUtils.forceArray(fieldValue);
-                if (fieldDefinition.sortOrder !== undefined)
+                if (fieldDefinition.sortOrder !== undefined) {
                     XMLUtils.sort(fieldValue, fieldDefinition.sortOrder);
+                }
                 for (let value of fieldValue) {
                     content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue));
                     if (objectKeys) {
                         for (let key of objectKeys) {
                             const subFieldValue = value[key];
                             if (subFieldValue !== undefined && subFieldValue !== null) {
-                                if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0)
+                                if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0) {
                                     continue;
-                                if (Array.isArray(subFieldValue) && subFieldValue.length === 0)
+                                }
+                                if (Array.isArray(subFieldValue) && subFieldValue.length === 0) {
                                     continue;
+                                }
                                 let subFieldDefinition = fieldDefinition.fields[key];
-                                if (subFieldDefinition.definitionRef)
-                                    subFieldDefinition = XMLDefinitions.resolveDefinitionReference(subFieldDefinition);
-                                if (subFieldDefinition.datatype === DataTypes.OBJECT) {
-                                    content += processXMLField(subFieldDefinition, subFieldValue, sortOrder, 0);
+                                if (subFieldDefinition.definitionRef) {
+                                    subFieldDefinition = XMLDefinitions.resolveDefinitionReference(typeDefinition, subFieldDefinition);
+                                }
+                                if (subFieldDefinition.datatype === Datatypes.OBJECT) {
+                                    content += processXMLField(typeDefinition, subFieldDefinition, subFieldValue, sortOrder, 0);
                                 } else {
                                     content += XMLParser.getXMLElement(subFieldDefinition.key, XMLUtils.getAttributes(subFieldValue), subFieldDefinition.prepareValue(subFieldValue));
                                 }
@@ -435,20 +473,27 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
                     empty = true;
                 }
                 content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue), empty);
-                if (empty)
+                if (empty) {
                     content += NEWLINE;
+                }
                 if (!empty) {
-                    for (let key of objectKeys) {
-                        const subFieldValue = fieldValue[key];
-                        if (subFieldValue !== undefined && subFieldValue !== null) {
-                            if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0)
-                                continue;
-                            if (Array.isArray(subFieldValue) && subFieldValue.length === 0)
-                                continue;
-                            let subFieldDefinition = fieldDefinition.fields[key];
-                            if (subFieldDefinition.definitionRef)
-                                subFieldDefinition = XMLDefinitions.resolveDefinitionReference(subFieldDefinition);
-                            content += XMLParser.getXMLElement(subFieldDefinition.key, XMLUtils.getAttributes(subFieldValue), subFieldDefinition.prepareValue(subFieldValue));
+                    if (objectKeys) {
+                        for (let key of objectKeys) {
+                            const subFieldValue = fieldValue[key];
+                            if (subFieldValue !== undefined && subFieldValue !== null) {
+                                if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0) {
+                                    continue;
+                                }
+                                if (Array.isArray(subFieldValue) && subFieldValue.length === 0) {
+                                    continue;
+                                }
+                                let subFieldDefinition = fieldDefinition.fields[key]; {
+                                    if (subFieldDefinition.definitionRef) {
+                                        subFieldDefinition = XMLDefinitions.resolveDefinitionReference(typeDefinition, subFieldDefinition);
+                                    }
+                                }
+                                content += XMLParser.getXMLElement(subFieldDefinition.key, XMLUtils.getAttributes(subFieldValue), subFieldDefinition.prepareValue(subFieldValue));
+                            }
                         }
                     }
                     content += XMLParser.getEndTag(fieldDefinition.key) + (indent === 0 ? '' : NEWLINE);
@@ -459,10 +504,11 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
         }
     } else {
         let objectKeys = getOrderedKeys(fieldDefinition, sortOrder);
-        if (Array.isArray(fieldValue) || fieldDefinition.datatype === DataTypes.ARRAY) {
+        if (Array.isArray(fieldValue) || fieldDefinition.datatype === Datatypes.ARRAY) {
             fieldValue = XMLUtils.forceArray(fieldValue);
-            if (fieldDefinition.sortOrder !== undefined)
+            if (fieldDefinition.sortOrder !== undefined) {
                 XMLUtils.sort(fieldValue, fieldDefinition.sortOrder);
+            }
             for (let value of fieldValue) {
                 if (!objectKeys) {
                     content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + fieldDefinition.prepareValue(value) + XMLParser.getEndTag(fieldDefinition.key) + NEWLINE;
@@ -471,14 +517,17 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
                     for (let key of objectKeys) {
                         const subFieldValue = value[key];
                         if (subFieldValue !== undefined && subFieldValue !== null) {
-                            if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0)
+                            if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0) {
                                 continue;
-                            if (Array.isArray(subFieldValue) && subFieldValue.length === 0)
+                            }
+                            if (Array.isArray(subFieldValue) && subFieldValue.length === 0) {
                                 continue;
+                            }
                             let subFieldDefinition = fieldDefinition.fields[key];
-                            if (subFieldDefinition.definitionRef)
-                                subFieldDefinition = XMLDefinitions.resolveDefinitionReference(subFieldDefinition);
-                            content += processXMLField(subFieldDefinition, subFieldValue, sortOrder, indent + 1);
+                            if (subFieldDefinition.definitionRef) {
+                                subFieldDefinition = XMLDefinitions.resolveDefinitionReference(typeDefinition, subFieldDefinition);
+                            }
+                            content += processXMLField(typeDefinition, subFieldDefinition, subFieldValue, sortOrder, indent + 1);
                         }
                     }
                     content += XMLUtils.getTabs(indent) + XMLParser.getEndTag(fieldDefinition.key) + NEWLINE;
@@ -492,17 +541,22 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
             content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue), empty) + NEWLINE;
             if (!empty) {
                 try {
-                    for (let key of objectKeys) {
-                        const subFieldValue = fieldValue[key];
-                        if (subFieldValue !== undefined && subFieldValue !== null) {
-                            if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0)
-                                continue;
-                            if (Array.isArray(subFieldValue) && subFieldValue.length === 0)
-                                continue;
-                            let subFieldDefinition = fieldDefinition.fields[key];
-                            if (subFieldDefinition.definitionRef)
-                                subFieldDefinition = XMLDefinitions.resolveDefinitionReference(subFieldDefinition);
-                            content += processXMLField(subFieldDefinition, subFieldValue, sortOrder, indent + 1);
+                    if (objectKeys) {
+                        for (let key of objectKeys) {
+                            const subFieldValue = fieldValue[key];
+                            if (subFieldValue !== undefined && subFieldValue !== null) {
+                                if (!Array.isArray(subFieldValue) && typeof subFieldValue === 'object' && Object.keys(subFieldValue).length === 0) {
+                                    continue;
+                                }
+                                if (Array.isArray(subFieldValue) && subFieldValue.length === 0) {
+                                    continue;
+                                }
+                                let subFieldDefinition = fieldDefinition.fields[key];
+                                if (subFieldDefinition.definitionRef) {
+                                    subFieldDefinition = XMLDefinitions.resolveDefinitionReference(typeDefinition, subFieldDefinition);
+                                }
+                                content += processXMLField(typeDefinition, subFieldDefinition, subFieldValue, sortOrder, indent + 1);
+                            }
                         }
                     }
                 } catch (error) {
@@ -515,31 +569,38 @@ function processXMLField(fieldDefinition, fieldValue, sortOrder, indent) {
     return content;
 }
 
-function mustCompress(field) {
+function mustCompress(field: any): boolean {
+    let compress = false;
     if (isComplexField(field)) {
         if (field.compress) {
-            return true;
+            compress = true;
         } else {
             if (field.fields) {
                 for (let key of Object.keys(field.fields)) {
-                    if (isComplexField(field.fields[key]))
-                        return false;
+                    if (isComplexField(field.fields[key])) {
+                        compress = false;
+                        break;
+                    }
                 }
-                return true;
+                compress = true;
+            } else {
+                compress = true;
             }
         }
     } else {
-        return true;
+        compress = true;
     }
+    return compress;
 }
 
-function getOrderedKeys(xmlEntity, sortOrder) {
-    let entityKeys;
+function getOrderedKeys(xmlEntity: any, sortOrder: string): string[] | undefined {
+    let entityKeys: string[];
     if (isComplexField(xmlEntity)) {
-        if (xmlEntity.fields)
+        if (xmlEntity.fields) {
             xmlEntity = xmlEntity.fields;
-        else
+        } else {
             return undefined;
+        }
     }
     entityKeys = Object.keys(xmlEntity);
     if (sortOrder === SORT_ORDER.ALPHABET_ASC) {
@@ -578,6 +639,6 @@ function getOrderedKeys(xmlEntity, sortOrder) {
     return entityKeys;
 }
 
-function isComplexField(xmlField) {
-    return xmlField.datatype === DataTypes.ARRAY || xmlField.datatype === DataTypes.OBJECT;
+function isComplexField(xmlField: any) {
+    return xmlField.datatype === Datatypes.ARRAY || xmlField.datatype === Datatypes.OBJECT;
 }
