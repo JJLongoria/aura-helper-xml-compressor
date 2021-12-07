@@ -9,6 +9,7 @@
     "scripts": {
         "compile": "tsc -p ./ ",
         "lint": "eslint src --ext ts",
+        "lint-fix": "eslint src --ext ts --fix",
         "watch": "tsc -watch -p ./",
         "test": "jest --coverage --runInBand"
     },
@@ -60,8 +61,8 @@
         "typescript": "^3.9.6"
     },
     "dependencies": {
-        "@aurahelper/core": "^1.0.0",
-        "@aurahelper/languages": "^1.0.0",
-        "@aurahelper/xml-definitions": "^1.0.0"
+        "@aurahelper/core": "file:../ah-core",
+        "@aurahelper/languages": "file:../ah-languages",
+        "@aurahelper/xml-definitions": "file:../ah-xml-definitions"
     }
 }
