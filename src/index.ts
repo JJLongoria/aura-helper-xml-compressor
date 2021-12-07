@@ -576,15 +576,13 @@ function mustCompress(field: any): boolean {
             compress = true;
         } else {
             if (field.fields) {
+                compress = true;
                 for (let key of Object.keys(field.fields)) {
                     if (isComplexField(field.fields[key])) {
                         compress = false;
                         break;
                     }
                 }
-                compress = true;
-            } else {
-                compress = true;
             }
         }
     } else {
@@ -639,6 +637,6 @@ function getOrderedKeys(xmlEntity: any, sortOrder: string): string[] | undefined
     return entityKeys;
 }
 
-function isComplexField(xmlField: any) {
+function isComplexField(xmlField: any): boolean {
     return xmlField.datatype === Datatypes.ARRAY || xmlField.datatype === Datatypes.OBJECT;
 }
