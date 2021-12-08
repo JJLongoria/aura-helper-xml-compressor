@@ -303,9 +303,10 @@ Return the XMLCompressor instance
 ### **Examples:**
 **Set XML Root Object to process**
 ```javascript
-    const { XMLParser } = require('@aurahelper/languages').XML;
+    import { XML } from '@aurahelper/languages';
     import { XMLCompressor } from '@aurahelper/xml-compressor';
-    
+
+    const XMLParser = XML.XMLParser;
     const xmlContent = '<?xml version...';
     const xmlRoot = XMLParser.parse(xmlContent);
 
