@@ -10,7 +10,7 @@ const Utils = CoreUtils.Utils;
 
 const NEWLINE = '\r\n';
 
-const SORT_ORDER: XMLSortOrder = {
+export const SORT_ORDER: XMLSortOrder = {
     SIMPLE_FIRST: 'simpleFirst',
     COMPLEX_FIRST: 'complexFirst',
     ALPHABET_ASC: 'alphabetAsc',
