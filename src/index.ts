@@ -1,4 +1,5 @@
-import { DataNotFoundException, FileChecker, OperationNotAllowedException, CoreUtils, FileReader, OperationNotSupportedException, FileWriter, Datatypes, XMLSortOrder } from "@aurahelper/core";
+import { DataNotFoundException, FileChecker, OperationNotAllowedException, CoreUtils, FileReader, OperationNotSupportedException, FileWriter, Datatypes, XMLSortOrder, XMLCompressorStatus
+ } from "@aurahelper/core";
 import { XML } from "@aurahelper/languages";
 import { XMLDefinitions } from "@aurahelper/xml-definitions";
 import EventEmitter from "events";
@@ -19,12 +20,6 @@ export const SORT_ORDER: XMLSortOrder = {
 
 const ON_COMPRESS_SUCCESS = 'compressSucess';
 const ON_COMPRESS_FAILED = 'compressFailed';
-
-export interface XMLCompressorStatus {
-    file: string;
-    filesProcessed: number;
-    totalFiles: number;
-}
 
 /**
  * Class to compress any Salesforce Metadata XML Files to change the format
