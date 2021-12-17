@@ -1,5 +1,6 @@
-import { DataNotFoundException, FileChecker, OperationNotAllowedException, CoreUtils, FileReader, OperationNotSupportedException, FileWriter, Datatypes, XMLSortOrder, XMLCompressorStatus
- } from "@aurahelper/core";
+import {
+    DataNotFoundException, FileChecker, OperationNotAllowedException, CoreUtils, FileReader, OperationNotSupportedException, FileWriter, Datatypes, XMLSortOrder, XMLCompressorStatus
+} from "@aurahelper/core";
 import { XML } from "@aurahelper/languages";
 import { XMLDefinitions } from "@aurahelper/xml-definitions";
 import EventEmitter from "events";
@@ -505,7 +506,7 @@ function processXMLField(typeDefinition: any, fieldDefinition: any, fieldValue: 
                 XMLUtils.sort(fieldValue, fieldDefinition.sortOrder);
             }
             for (let value of fieldValue) {
-                if (!objectKeys) {
+                if (!objectKeys || objectKeys.length == 0) {
                     content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + fieldDefinition.prepareValue(value) + XMLParser.getEndTag(fieldDefinition.key) + NEWLINE;
                 } else {
                     content += XMLUtils.getTabs(indent) + XMLParser.getStartTag(fieldDefinition.key, XMLUtils.getAttributes(fieldValue)) + NEWLINE;
@@ -570,7 +571,7 @@ function mustCompress(field: any): boolean {
         if (field.compress) {
             compress = true;
         } else {
-            if (field.fields) {
+            if (Utils.hasKeys(field.fields)) {
                 compress = true;
                 for (let key of Object.keys(field.fields)) {
                     if (isComplexField(field.fields[key])) {
