@@ -39,7 +39,7 @@ File or folder path or paths to execute compress operations
 - `string[]`
 
 ### [**sortOrder**](#xmlcompressor-fields-sortorder)
-Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetAsc)
 - `string`
 
 ### [**content**](#xmlcompressor-fields-content)
@@ -61,7 +61,7 @@ Constructor to create a new XML Compressor object. All parameters are optional a
 ### **Parameters:**
   - **pathOrPaths**: Path or paths to files or folder to compress
     - `string` | `string[]`
-  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetAsc)
     - `string`
 
 </br>
@@ -319,7 +319,7 @@ Return the XMLCompressor instance
 Method to set the sort order value to sort the XML Elements when compress
 
 ### **Parameters:**
-  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default).
+  - **sortOrder**: Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetAsc).
     - `string`
 
 ### **Return:**

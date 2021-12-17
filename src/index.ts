@@ -46,11 +46,11 @@ export class XMLCompressor {
     /**
      * Constructor to create a new XML Compressor object
      * @param {string | string[]} [pathOrPaths] Path or paths to files or folder to compress 
-     * @param {string} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default)
+     * @param {string} [sortOrder] Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetAsc by default)
      */
     constructor(pathOrPaths?: string | string[], sortOrder?: string) {
         this.paths = pathOrPaths ? XMLUtils.forceArray(pathOrPaths) : [];
-        this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_DESC;
+        this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_ASC;
         this.content = undefined;
         this.xmlRoot = undefined;
 
@@ -136,12 +136,12 @@ export class XMLCompressor {
 
     /**
      * Method to set the sort order value to sort the XML Elements when compress
-     * @param {string} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetDesc by default).
+     * @param {string} sortOrder Sort order to order the XML elements. Values: simpleFirst, complexFirst, alphabetAsc or alphabetDesc. (alphabetAsc by default).
      * 
      * @returns {XMLCompressor} Return the XMLCompressor instance
      */
     setSortOrder(sortOrder: string): XMLCompressor {
-        this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_DESC;
+        this.sortOrder = (sortOrder && Object.values(SORT_ORDER).includes(sortOrder)) ? sortOrder : SORT_ORDER.ALPHABET_ASC;
         return this;
     }
 

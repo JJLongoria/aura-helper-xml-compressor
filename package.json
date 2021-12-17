@@ -62,8 +62,8 @@
         "typescript": "^3.9.6"
     },
     "dependencies": {
-        "@aurahelper/core": "^2.0.0",
+        "@aurahelper/core": "^2.1.0",
         "@aurahelper/languages": "^2.0.0",
-        "@aurahelper/xml-definitions": "^2.0.0"
+        "@aurahelper/xml-definitions": "^2.0.1"
     }
 }
