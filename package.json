@@ -2,7 +2,7 @@
     "name": "@aurahelper/xml-compressor",
     "productName": "Aura Helper SalesForce XML Compressor",
     "displayName": "Aura Helper Framework SalesForce XML Compressor",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "description": "Libraries to compress any Salesforce Metadata XML Files to change the format. This library make easy the work with GIT and other Version Control Systems because grant always the same order of the elements, compress the file for ocuppy less storage and make GIT faster and, specially make merges conflict more easy to resolve because identify the changes better.",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -62,8 +62,8 @@
         "typescript": "^3.9.6"
     },
     "dependencies": {
-        "@aurahelper/core": "^2.1.0",
-        "@aurahelper/languages": "^2.0.0",
+        "@aurahelper/core": "^2.6.2",
+        "@aurahelper/languages": "^2.1.0",
         "@aurahelper/xml-definitions": "^2.0.1"
     }
 }
